@@ -632,3 +632,336 @@ The largest risk is not the permission prompt. It is the restricted App Standby
 Bucket after 8 days of non-interaction, which caps the app at one alarm per day
 even while charging, and from which only `USE_EXACT_ALARM` grants exemption, the
 permission Play policy most likely denies this app.
+
+## Follow-up: delivery architecture
+
+Three narrow questions on whether a remote backstop rescues the restricted
+bucket case. Same sourcing rules as above.
+
+### 1. High-priority FCM in the restricted bucket
+
+**Since Android 13, standby buckets no longer cap high-priority FCM at all.**
+This is the single most useful finding in this follow-up. From
+[Power management resource limits](https://developer.android.com/topic/performance/power/power-details),
+stated twice on the page:
+
+> Note that starting in Android 13, the app's standby bucket no longer
+> determines how many high priority FCMs an app can use.
+
+And in the Android 13 changes list on the same page, verbatim:
+
+> **High Priority Firebase Cloud Message (FCM) Quotas behavior change**
+>
+> - App Standby Buckets no longer determine how many high priority FCMs an app
+>   can use.
+> - System now downgrades the high priority messages if it detects an app
+>   consistently sending high-priority messages that don't result in a
+>   notification
+> - For current guidelines on high priority messages, refer to firebase
+>   documentation on set and manage message priority.
+
+So there are **no per-bucket high-priority FCM numbers to report for Android 13
+and above, because the mechanism was removed.** The pre-13 per-bucket FCM quotas
+are gone from current documentation and I did not find them stated anywhere
+current. Anyone quoting per-bucket FCM numbers today is quoting a retired
+mechanism.
+
+**Doze.** The device-state table on the same page gives, for "Screen off and
+doze is active", FCM behavior of "High priority: No execution limits" against
+"Normal priority: Deferred to doze maintenance window"
+([power-details](https://developer.android.com/topic/performance/power/power-details)).
+Firebase states the mechanism: "FCM attempts to deliver high priority messages
+immediately, allowing FCM to wake a sleeping device when necessary and to run
+some limited processing (including very limited network access)"
+([Message priority](https://firebase.google.com/docs/cloud-messaging/android/message-priority)).
+This is a Firebase-domain source, but developer.android.com explicitly delegates
+to it for current guidance, so the referral chain is primary.
+
+So high-priority FCM is exempt, not capped, on both axes that matter: Doze and
+standby bucket. That is a genuinely better position than local alarms are in.
+
+**The throttle that does exist is behavioral, not numeric.** Firebase: "If FCM
+detects a pattern in which messages don't result in user-facing notifications,
+your messages may be deprioritized to normal priority"
+([Message priority](https://firebase.google.com/docs/cloud-messaging/android/message-priority)).
+The Android side puts it more strongly: "the only intended use for high priority
+FCM messages is to push a notification to the user, so this situation must not
+occur"
+([App Standby Buckets](https://developer.android.com/topic/performance/appstandby)).
+Every high-priority push Linger sends must produce a visible notification. A
+silent sync push must be normal priority.
+
+**Does receiving an FCM message promote the app out of restricted?** No.
+Receiving is not on the documented promotion list; only the user's reaction is.
+From [App Standby Buckets](https://developer.android.com/topic/performance/appstandby):
+
+> If the app doesn't show a notification upon receiving a high-priority Firebase
+> Cloud Messaging (FCM) message, the user can't interact with the app and thus
+> promote it to the active bucket.
+
+The promotion is therefore a three-step chain, not a one-step one: message
+arrives, app posts a notification, **user taps it**, app becomes active. Arrival
+alone leaves the app in restricted.
+
+**Two limits on the backstop that must be designed around.**
+
+First, the app's own network is off in restricted. The bucket table gives
+Network as "Disabled" for both Rare and Restricted
+([power-details](https://developer.android.com/topic/performance/power/power-details)).
+Firebase says high priority allows "very limited network access", so the message
+itself arrives, but the handler should assume it cannot fetch itinerary detail
+and must render the notification from locally cached data. Whether the "very
+limited network access" grant overrides the bucket's disabled-network state is
+not stated on either page. Unconfirmed.
+
+Second, and decisively, **hibernation kills the FCM backstop too.** From
+[App hibernation](https://developer.android.com/topic/performance/app-hibernation),
+verbatim: "Your app can't receive push notifications, including high-priority
+Firebase Cloud Messaging messages." Alongside "Your app can't run jobs or alerts
+from the background." Hibernation triggers after a few months of no interaction,
+so it is outside the 10-day scenario, but it means FCM is not a permanent
+backstop, only a medium-term one.
+
+Android 15 force stop is the other case where FCM is no help for alarms
+specifically: it cancels PendingIntents, and an FCM handler can reschedule them,
+but only if the app is not also in the stopped state that blocks it from
+running. Interaction between force stop and FCM delivery is not documented.
+Unconfirmed.
+
+### 2. Does setAlarmClock() count against the restricted one-per-day cap?
+
+**Undocumented. Stated plainly: no Google page I could find answers this.**
+
+What I checked, and what each says:
+
+- [Power management resource limits](https://developer.android.com/topic/performance/power/power-details)
+  never uses the words `setAlarmClock` or "alarm clock". Its alarm vocabulary is
+  only "Regular alarms", "While-idle alarms", "exact alarm" and "inexact alarm".
+- The [AlarmManager reference](https://developer.android.com/reference/android/app/AlarmManager)
+  never mentions standby buckets, the restricted bucket, or alarm quotas in any
+  method's documentation, including `setAlarmClock()`.
+- The [schedule alarms guide](https://developer.android.com/develop/background-work/services/alarms/schedule)
+  never mentions standby buckets either.
+- [App Standby Buckets](https://developer.android.com/topic/performance/appstandby)
+  never mentions `setAlarmClock()`.
+
+**The strongest available inference points to "counted", not "exempt".** The
+restricted bucket row reads "One alarm per day, either an exact alarm or an
+inexact alarm", and its "exact alarm" link resolves to the section of the
+schedule guide headed "Ways to set an exact alarm", which lists exactly three
+methods: `setExact()`, `setExactAndAllowWhileIdle()` and `setAlarmClock()`
+([schedule guide](https://developer.android.com/develop/background-work/services/alarms/schedule)).
+By Google's own taxonomy on the page the cap links to, `setAlarmClock()` is an
+exact alarm. Nothing carves it out.
+
+This is an inference from a link target, not a documented rule. Do not build the
+product on the optimistic reading.
+
+**One documented escape does exist,** and it is the most important sentence
+found in this follow-up round. From
+[App Standby Buckets](https://developer.android.com/topic/performance/appstandby):
+
+> Note: Apps that are on the Doze exemption list are exempted from the App
+> Standby Bucket-based restrictions.
+
+The Doze exemption list is the battery-optimization allowlist. So being
+allowlisted removes the restricted bucket's one-alarm-per-day cap entirely,
+without `USE_EXACT_ALARM`. Section 2 of this document covers the Play
+constraint: Linger almost certainly cannot use
+`ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` to prompt directly, but "Most apps
+can invoke an intent that contains the
+`ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS`"
+([doze-standby](https://developer.android.com/training/monitoring-device-state/doze-standby)),
+which opens the system screen and lets the user do it themselves. That is a
+documented, policy-safe, user-consented path to full bucket exemption.
+
+**Experiment to settle the cap question.** Nothing here needs guessing; it is a
+half-day measurement.
+
+Setup. Debug build targeting API 35 or 36, declaring `SCHEDULE_EXACT_ALARM` only
+and not `USE_EXACT_ALARM`, granted via the Alarms and reminders settings screen.
+Physical devices, since bucket behavior is manufacturer-dependent per the
+"Every manufacturer can set their own criteria" note; at minimum one Pixel and
+one Samsung.
+
+Force the state:
+
+```
+adb shell dumpsys battery unplug
+adb shell am set-standby-bucket PACKAGE_NAME restricted
+adb shell am get-standby-bucket PACKAGE_NAME
+```
+
+The `set-standby-bucket` command is documented for exactly this purpose on the
+[Android 16 behavior changes](https://developer.android.com/about/versions/16/behavior-changes-all)
+page and the bucket values are listed there as
+`active|working_set|frequent|rare|restricted`. Unplugging matters because bucket
+alarm limits "apply only while the device is on battery power. While the device
+is charging, the system doesn't impose these restrictions"
+([App Standby Buckets](https://developer.android.com/topic/performance/appstandby)),
+with the restricted bucket being the documented exception, so measuring on a
+charging device would prove nothing.
+
+Instrument: schedule N `setAlarmClock()` alarms at known instants 20 minutes
+apart over several hours, each with a distinct request code, each receiver
+logging its scheduled instant and `System.currentTimeMillis()` on fire. Record
+`getAppStandbyBucket()` and `isBackgroundRestricted()` at schedule time and at
+each fire.
+
+Measure three things. Does alarm number 2 within the same day fire at all, which
+answers counted versus exempt. If it fires, what is the delivery skew from the
+requested instant. And run the same N with `setExactAndAllowWhileIdle()` as a
+control, to separate the bucket cap from the while-idle throttle.
+
+Then repeat the whole matrix with the app on the battery-optimization allowlist,
+to confirm the exemption note holds in practice, and force Doze with
+`adb shell dumpsys deviceidle force-idle`
+([doze-standby](https://developer.android.com/training/monitoring-device-state/doze-standby))
+to check the two mechanisms compose.
+
+### 3. Legitimate promotion out of restricted
+
+The documented signals are short and specific. An app is in the active bucket
+"while it is used, is very recently used, or when it does any of the following",
+verbatim:
+
+> - Launches an activity.
+> - Runs a long running foreground service.
+> - Is tapped by the user from a notification.
+
+And, on Android 9 and higher, the system "temporarily places your app into the
+active bucket" on these interactions, verbatim:
+
+> - The user taps on a notification that your app sends.
+>
+>   Note: If the user swipes away the notification without tapping on it, the
+>   system doesn't consider that action to be an interaction with your app.
+>
+> - The user interacts with a foreground service in your app by tapping a media
+>   button.
+> - The user connects to your app while interacting with Android Automotive OS,
+>   where your app uses either a foreground service or
+>   `CONNECTION_TYPE_PROJECTION`.
+
+Both lists from [App Standby Buckets](https://developer.android.com/topic/performance/appstandby).
+Promotion is temporary: "After the user stops interacting with your app, the
+system places it into a bucket based on usage history."
+
+Answering the three specific questions:
+
+- **Does a tapped notification count?** Yes, explicitly, and it is the only
+  promotion signal Linger can realistically trigger without the user opening the
+  app first. A swipe-away does not count.
+- **Does a home-screen widget count?** Not as a promotion signal. "Apps with
+  active widgets" appear on a different list, the exemptions from *entering* the
+  restricted bucket
+  ([App Standby Buckets](https://developer.android.com/topic/performance/appstandby)).
+  That is arguably better than promotion, since it prevents the demotion rather
+  than reversing it, but the two are not the same mechanism and the widget is
+  not documented as promoting anything.
+- **Does a foreground service count?** Only in two narrow forms. "Runs a long
+  running foreground service" is a direct active-bucket condition, and tapping a
+  media button on one is an interaction. A short foreground service, or one the
+  user never touches, is not a documented promotion signal. Android 14 and later
+  also constrain which foreground service types an app may declare, which is
+  outside this document's scope and would need its own check.
+
+**What Linger could plausibly use, without being user-hostile.**
+
+Defensible:
+
+1. **A home-screen widget**, offering the next itinerary item. This is the best
+   option found: it exempts the app from entering the restricted bucket at all,
+   it is opt-in, it is genuinely useful for a travel app, and it costs the user
+   nothing after placement. Caveat from section 3 of the main document: Android
+   15 force stop cancels widget PendingIntents and "the system disables the
+   app's widgets", so the widget is not self-healing.
+2. **The battery-optimization settings deeplink**, once, in context, with an
+   honest explanation. Per the note quoted above this exempts the app from
+   bucket restrictions entirely, which is a stronger outcome than promotion.
+3. **Making reminder notifications tappable and worth tapping**, which the docs
+   actively recommend: "If the users can't interact with app notifications,
+   users are unable to trigger the app's promotion to the active bucket. In this
+   case, consider redesigning some notifications that let users interact"
+   ([App Standby Buckets](https://developer.android.com/topic/performance/appstandby)).
+   Note this is circular as a fix for a missed reminder: the tap that promotes
+   the app requires a notification that already fired.
+4. **A pre-trip re-engagement notification** a day or two before departure,
+   while the app is still in a healthy bucket, sized to get one tap. This
+   converts the 8-day idle window into a bounded problem.
+
+Not defensible, and documented as such:
+
+- Notification spam to hold the active bucket. Verbatim: "Note: If the user
+  repeatedly dismisses a notification, the system gives the user the option to
+  block that notification in the future. Don't spam the user with notifications
+  to try to keep your app in the active bucket."
+- Any bucket manipulation. Verbatim: "Don't try to manipulate the system into
+  putting your app into a certain bucket."
+- A long-running foreground service purely to hold the bucket. It would work as
+  a mechanism but it is a persistent notification and a battery cost for no
+  user-visible purpose, and it invites the poor-system-health detection that CDD
+  3.5.1 [C-1-3] lets OEMs act on
+  ([CDD](https://source.android.com/docs/compatibility/16/android-16-cdd)).
+
+### Verdict: is local setAlarmClock plus high-priority FCM sufficient at day 10?
+
+**Not on its own, but it is close, and the gap is closable without
+`USE_EXACT_ALARM`.**
+
+Walking the day-10 case. The user has not opened the app for 10 days, which on
+Android 13+ is past the 8-day threshold, so assume the restricted bucket, and on
+Samsung assume sleeping mode after 3 days.
+
+- The local `setAlarmClock()` path is at risk. If the cap counts alarm-clock
+  alarms, which is the strongest available reading though undocumented, the app
+  gets one alarm that day, enforced even while charging. A travel day with three
+  reminders loses two of them.
+- The FCM path holds up better than expected. High-priority FCM is bucket-exempt
+  since Android 13 and Doze-exempt, so the message arrives. But it is not
+  offline. The core product promise is "no network", and FCM is by definition a
+  network path. It backstops the connected case only.
+- Neither path survives Samsung deep sleeping, where "Inactive applications
+  can't perform any activities, including notifications or updates"
+  ([Samsung](https://developer.samsung.com/mobile/app-management.html)), though
+  that needs 16 days rather than 10.
+
+So the answer to the literal question is no: `setAlarmClock` plus FCM does not
+by itself guarantee an offline reminder at day 10 to a restricted-bucket app.
+
+**But there is a reliable path, and it is not `USE_EXACT_ALARM`.** The
+documented note that apps on the Doze exemption list "are exempted from the App
+Standby Bucket-based restrictions" is the lever. Combining:
+
+1. `setAlarmClock()` as the delivery mechanism, offline and app-closed.
+2. `SCHEDULE_EXACT_ALARM` granted through the Alarms and reminders screen.
+3. Battery-optimization allowlisting, offered through
+   `ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS`, which removes bucket
+   restrictions entirely.
+4. A widget, which independently exempts the app from entering restricted.
+5. High-priority FCM as a connected-only backstop and a self-heal trigger for
+   reschedule after reboot, force stop or permission change.
+6. The Samsung never-sleeping deeplink on Samsung hardware.
+
+Each of those is documented and policy-safe. None is auto-granted. The honest
+framing is that Android can deliver this promise reliably **only for users who
+complete two or three permission flows**, and degrades for users who do not.
+That is a product decision about onboarding, not a platform blocker.
+
+### New ambiguities from this round
+
+11. **Per-bucket high-priority FCM quotas for Android 12 and below.** Removed
+    from current docs. If Linger supports API 31 and 32, the old quotas applied
+    there and I could not find them stated in any current primary source.
+12. **Whether FCM's "very limited network access" overrides the restricted
+    bucket's disabled network.** The two pages do not reconcile. Determines
+    whether an FCM handler can fetch anything or must render from cache.
+13. **Whether a force-stopped app on Android 15 receives high-priority FCM.**
+    Not documented. Determines whether FCM can self-heal cancelled
+    PendingIntents.
+14. **Whether the Doze exemption list also exempts an app from the Samsung
+    sleeping and deep sleeping mechanisms,** which are proprietary and separate
+    from AOSP buckets. Samsung's page does not say.
+15. **Whether widget presence exempts from the restricted bucket on OEM builds**
+    that implement their own bucketing, given the "Every manufacturer can set
+    their own criteria" note.
