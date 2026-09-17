@@ -7,6 +7,26 @@ the product specification lives in `docs/`.
 
 No em dashes in prose.
 
+## Agent skills
+
+### Issue tracker
+
+Issues live as GitHub issues in `S1rRV/linger-app`, through the `gh` CLI locally
+and the GitHub MCP tools in cloud sessions, where `gh` is absent. See
+`docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical roles, with the default label strings (`needs-triage`,
+`needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See
+`docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` and one `docs/adr/` at the repo root, both
+created lazily by `/domain-modeling` rather than upfront. See
+`docs/agents/domain.md`.
+
 ## Vendored agent skills
 
 `.claude/skills/` contains 25 skills vendored from
@@ -49,10 +69,16 @@ Nothing is installed globally and nothing in `~/.claude/` is touched.
 
 ### One-time setup
 
-Run `/setup-matt-pocock-skills` once. It generates the project context files the
-other skills read, under `docs/agents/`: `CONTEXT.md`, `CONTEXT-MAP.md`,
-`domain.md`, `issue-tracker.md` and `triage-labels.md`. Several skills degrade
-without them.
+Done. `/setup-matt-pocock-skills` has been run, and wrote the three config files
+the other skills read: `docs/agents/issue-tracker.md`,
+`docs/agents/triage-labels.md` and `docs/agents/domain.md`, summarised under
+"Agent skills" above.
+
+Edit those files directly to change tracker, labels or layout. Re-running the
+skill is only needed to switch issue trackers or start over.
+
+`CONTEXT.md` and `docs/adr/` are deliberately not created here. `/domain-modeling`
+writes them lazily, when a term or a decision actually gets resolved.
 
 ### Name collision to be aware of
 
