@@ -36,8 +36,10 @@ for somebody.
 _Avoid_: Type, role, connection
 
 **Booking**:
-One commercial agreement with one vendor, identified by one confirmation code.
-A return flight bought together is one Booking, not two.
+One commercial agreement with one vendor. A return flight bought together is one
+Booking, not two. Identified by any of its References, or by its journey where
+no Reference is shared, never by one confirmation code: the sample set has the
+same four flights under two of them. See ADR-0003.
 _Avoid_: Reservation, itinerary item, ticket
 
 **Segment**:
