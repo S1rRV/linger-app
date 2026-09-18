@@ -163,6 +163,26 @@ outstanding state. Absent unless someone asks for it: a Booking with Shares is
 being split, one without is simply paid.
 _Avoid_: Split, portion, owed
 
+**Home**:
+The Place the account holder departs from and returns to. Set once on the
+Account, never inferred from a Booking, because a trip can start from somewhere
+that is not home. Each Trip keeps a snapshot of it, so a trip taken while living
+elsewhere still reads correctly years later.
+_Avoid_: Base, origin, residence
+
+**Destination**:
+A Place a Trip is actually about. A Place becomes one when a non-flight Booking
+is anchored there, or when the traveller is there over eight hours with no
+onward flight already booked. Medellin and Cartagena in the sample trip.
+_Avoid_: Stop, city, location
+
+**Waypoint**:
+A Place passed through without it becoming a Destination: the sample trip's
+layovers at Santo Domingo, 2 h 25 m, and Punta Cana, 3 h 1 m, both with onward
+flights and nothing booked. Excluded from a Trip's name and from its
+Destination list.
+_Avoid_: Transit, stopover, connection, hub
+
 ## Terms deliberately not used
 
 **Reservation** is the ordinary English word for any Booking, so it cannot also
@@ -180,3 +200,8 @@ say which.
 
 **Rail** is too narrow: it excluded ferries, buses and booked airport transfers,
 which had nowhere to live. Use Transit.
+
+**Transit** is already taken. It names a kind of Booking, one where the traveller
+is carried rather than driving. It must not also name a Place passed through, so
+that sense is called a Waypoint. This collision was caught while modelling Trips
+and is recorded here because the wrong instinct is a strong one.

@@ -164,6 +164,34 @@ wanted for a friend, in the style of a shared-expense app. It needs a Share per
 Traveller carrying its own settled or outstanding state, which is a settlement
 model rather than a field, and it has no bearing on whether the timeline works.
 
+### The Trip itself: in and out
+
+| In build one | Out of build one |
+| --- | --- |
+| Home, asked once during setup | Automatic archiving |
+| Trip range: first Segment start to last Segment end | |
+| Destinations and Waypoints told apart | |
+| Name derived from Destinations, always editable | |
+| Joining rule: same Trip unless you were Home in between | |
+| Merging and splitting Trips by hand | |
+
+**Bounded by Home, not geography**, per
+[ADR-0005](adr/0005-trips-are-bounded-by-being-home.md). The old rule, overlap by
+date range and geography, had no answer for the sample trip: Medellin and
+Cartagena are 1,100 km and one flight apart and are obviously one trip.
+
+**Destination or Waypoint.** A Place is a Destination when a non-flight Booking
+is anchored there, or when the traveller is there over eight hours with no onward
+flight booked. The sample trip's layovers, 2 h 25 m at Santo Domingo and 3 h 1 m
+at Punta Cana, are Waypoints and stay out of the Trip's name.
+
+**Never name a Trip after a month.** The sample trip runs 23 December to 3
+January, so any month or year in the name is wrong at one end.
+
+**Merge and split by hand is in build one, not deferred.** The joining rule will
+be wrong sometimes, and an automatic rule with no override leaves the traveller
+with a mess they cannot fix.
+
 ### Done means
 
 One real trip of the author's, added entirely by upload and scan, where every

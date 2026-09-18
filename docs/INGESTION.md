@@ -87,7 +87,8 @@ Every local time is stored with its zone.
 The idempotency key is why a forwarded-three-times email produces one booking,
 and why a rebooking supersedes rather than duplicates.
 
-- Find the trip by date-range plus geography overlap
+- Find the Trip: a Booking joins an existing one unless the traveller is Home
+  in between. Returning Home with a later start means a new Trip
 - No trip: create one, named from the destination
 - Upsert on either match: same Seller and Reference, or same journey per Segment
   `(operator, start place, start local date, traveller)` with the service number

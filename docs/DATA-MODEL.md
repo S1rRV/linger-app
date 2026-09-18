@@ -27,18 +27,50 @@ export.
 
 ## Trip and people
 
+### Account
+
+| Field | Type |
+| --- | --- |
+| `home` | Place. Asked once during setup, never inferred from a Booking |
+| `home_currency` | the currency combined totals are estimated in |
+
+Added because two earlier decisions referred to things that did not exist.
+[ADR-0004](adr/0004-freeze-the-exchange-rate.md) converts to "the account's home
+currency", and the Trip needed a Home to decide where a trip begins and ends.
+
 ### Trip
 
 | Field | Type |
 | --- | --- |
 | `id` | uuid |
-| `name` | text, e.g. "Tokyo and Kyoto" |
-| `range` | start, end, home timezone |
-| `places` | destination list, bounding box |
+| `name` | derived from Destinations in order, always editable |
+| `range` | first Segment start to last Segment end |
+| `home` | snapshot of the Account's Home at creation |
+| `destinations` | Place[], ordered |
+| `waypoints` | Place[], excluded from the name |
 | `travellers` | Traveller[] |
 | `state` | planning, live, past, archived |
 
-Created by ingestion when no existing trip overlaps by date range and geography.
+`range` runs from the first Segment's start, not from arrival at the first
+Destination. The countdown a traveller wants is "leave home in six days".
+
+`home` is a snapshot rather than a live reference, so a trip taken while living
+elsewhere still reads correctly after a move.
+
+**Joining rule.** A Booking joins an existing Trip unless the traveller is Home
+in between. If a Booking returns them Home and the next starts later, that is a
+new Trip. See [ADR-0005](adr/0005-trips-are-bounded-by-being-home.md). The older
+rule, overlap by date range and geography, is replaced.
+
+**Naming.** Built from Destinations in the order they occur, so the sample trip
+is "Medellin and Cartagena". Waypoints and Home are excluded. Never built from a
+month or year: that trip runs 23 December to 3 January and any such name is wrong
+at one end.
+
+**State.** `past` when the last Segment ends. `archived` only by hand, never
+automatically, because a past Trip still holds receipts worth keeping to hand.
+
+A Booking whose Places are all Home creates no Trip at all.
 
 ### Traveller
 
