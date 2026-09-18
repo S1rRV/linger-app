@@ -191,9 +191,25 @@ confirmation's own wording survives ("Total paid", "Total Cost", "Estimated
 rental cost"). The stated figure is treated as paid; see the Amount entry in
 `CONTEXT.md`.
 
-`rate_at_purchase` is captured once, when the Booking is first stored, and never
-refetched. This is what keeps a Trip's combined total stable: a live rate would
-make last year's trip cost a different number every morning.
+The conversion to the account's currency is one of two things, and which one
+matters. An **estimate** is the app's own arithmetic and carries the date the
+rate was observed, which is not the booking date, plus whose number it is. A
+**stated** figure is the traveller reading their card statement, and carries
+neither because it is not a conversion of anything.
+
+A stated figure survives every later estimate, a reinstall and a re-parse of the
+same email. Nothing prompts for one: it is editable, and the traveller fills it
+in if they care. See the amendment to
+[ADR-0004](adr/0004-freeze-the-exchange-rate.md).
+
+Amounts are held in the currency's smallest unit, with the number of decimal
+places read per currency. The yen has no sub-unit, and treating every currency
+as two places makes a Japanese total a hundred times too large.
+
+A Trip shows exact per-currency subtotals always, and a single combined figure
+only when every Booking is priced and converted. One booking short and the
+combined figure is withheld rather than computed without it, because a total
+missing a booking looks complete.
 
 `breakdown[]` is optional and kept only when given. The Arajet confirmation
 itemises fare 2,666.78, bags 260.00 and fees 13.00; Alamo gives a single total.

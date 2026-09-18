@@ -31,12 +31,8 @@ frozen rates, and it is always marked as an estimate.
 
 ## Consequences
 
-**A rate source is now a dependency.** "Google" is not callable: there is no
-public Google FX API, and scraping it is neither permitted nor stable. A real
-historical daily source is needed. The ECB reference set, reachable through
-Frankfurter, is free and dated but euro-based and covers only major currencies.
-A commercial feed covers more. Either way this is a decision that has not been
-made, and it is recorded as an open question in the roadmap.
+**A rate source is now a dependency.** Settled below, under "Amended after the
+research".
 
 **It needs the network exactly once per Booking**, at ingestion, which suits an
 offline-first app. Once stored, every total is computed on the device with no
@@ -46,3 +42,46 @@ connection.
 Booking is saved, the rate stays empty and that currency is shown on its own
 line rather than folded into the estimate. Fetching it later is allowed;
 guessing it is not.
+
+## Amended after the research
+
+See [the research](../research/historical-exchange-rates.md), which changed
+three things about this decision. The core of it stands: a frozen rate beats a
+live one, for the reasons above. What changed is what a frozen rate is worth,
+and who gets the last word.
+
+**There is no single correct rate to freeze.** Fifty three official sources for
+one USD/INR date spread 1.75%, which is wider than the gap between any two
+sources considered. Picking a source is therefore a smaller decision than it
+looked, and how the number is presented is a larger one.
+
+**The traveller overrules the app.** A conversion is now either the app's
+estimate, carrying the day the rate was observed and whose number it is, or the
+traveller's own figure taken off their card statement. Theirs survives every
+later estimate, a reinstall and a re-parse of the same email. This is a stronger
+version of what this ADR wanted: their own figure cannot drift at all, where a
+frozen estimate merely drifts slowly.
+
+The app never asks for it. It is editable and the traveller corrects it if and
+when they care.
+
+**The observation date is not the booking date.** A Saturday purchase converts
+at the previous trading day's rate, because that is the last day anything was
+quoted. The two are stored separately, and the observed date is what is shown.
+Presenting a booking date over a weekday rate is a quiet lie, and it is exactly
+the lie the obvious free option tells: Frankfurter's blended endpoint stamps a
+response with the date requested rather than the date anything was measured, so
+USD/COP for Saturday 15 June 2024 comes back as 4119.52 when Colombia's own
+central bank says 4151.55.
+
+**The source, settled.** A trimmed ECB daily table ships inside the app, 119 KB
+gzipped for the currencies the first regions need, which makes the common case
+work with no network at all and nothing leaving the phone. Currencies it does
+not carry, the Colombian peso among them, are fetched from Frankfurter **with a
+single provider pinned**, never from the blended default. No keyed API is used:
+a key inside an Android package can be decompiled out of it, and the free tiers
+of the three brands that dominate the market are non-commercial anyway.
+
+**A missing rate is still a missing rate,** unchanged from above. That currency
+keeps its own line and the combined figure is withheld rather than computed
+without it.

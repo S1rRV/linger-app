@@ -301,14 +301,16 @@ These change what gets built, so they are worth answering before Phase 1.
    it drags in the currencies that make open question 5 real: INR, GBP, EUR and
    CAD all need a historical rate, where a US-only build would have needed
    none.
-5. **Which historical exchange-rate source?** Needed for the combined trip
-   total, per [ADR-0004](adr/0004-freeze-the-exchange-rate.md). "Google" is not
-   callable: there is no public Google FX API, and scraping it is neither
-   permitted nor stable. The ECB set through Frankfurter is free and dated but
-   euro-based and limited to major currencies, so it would not have covered a
-   Colombian peso charge. A commercial feed covers more and costs money. Not
-   urgent: all four sample Bookings are in dollars, so this can wait until one
-   arrives in a second currency.
+5. ~~Which historical exchange-rate source?~~ **Answered: a trimmed ECB table
+   bundled in the app, with Frankfurter pinned to a single provider for what it
+   does not carry.** See [the research](research/historical-exchange-rates.md)
+   and the amendment to [ADR-0004](adr/0004-freeze-the-exchange-rate.md).
+
+   The research moved the question rather than answering it as asked. Fifty
+   three official sources spread 1.75% on one date, so the source matters less
+   than the presentation: the combined total is a guess with its observation
+   date shown, and the traveller can replace it with what their card statement
+   said, permanently. The app never asks them to.
 6. ~~Is rail a first-class category?~~ **Answered:** transport splits on who
    drives. Car if you drive it, Transit if you are carried, which covers rail,
    ferry, bus and booked airport transfers. See `CONTEXT.md`.
