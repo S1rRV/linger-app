@@ -10,14 +10,39 @@ import kotlin.time.Duration
  * See CONTEXT.md, and ADR-0001 for why this exists rather than legs living
  * inside each booking kind's payload. Segments are the only place times are
  * stored: a payload carrying its own departure time is a bug.
+ *
+ * A car rental is one Segment, not two. The traveller holds the car from
+ * collection to return without a break, which is exactly one span with a Place
+ * at each end. Two obligations is a different count from two Segments, and
+ * [endMustBeAttended] is what carries the difference.
  */
 data class Segment(
     val from: Place,
     val to: Place,
     val startsAt: Instant,
     val endsAt: Instant,
+    /**
+     * Whether the traveller has to turn up and do something at the end.
+     *
+     * A rental return does: the car has to be handed back at a counter at a
+     * stated time. An arrival does not, because the plane lands whether or not
+     * the traveller participates. This is one flag rather than a switch on
+     * booking kind, so a ferry with a vehicle deck or a left-luggage locker
+     * needs no new branch.
+     */
+    val endMustBeAttended: Boolean = false,
 ) {
     val duration: Duration get() = endsAt - startsAt
+
+    /**
+     * Whether the end has to be attended somewhere other than where it started.
+     *
+     * A one-way rental collected in Medellin and dropped in Cartagena is the
+     * case: the traveller owes a counter visit at a Place they have not seen
+     * yet. Returning to the branch you collected from is the ordinary case and
+     * needs no warning.
+     */
+    val endIsElsewhere: Boolean get() = endMustBeAttended && from != to
 
     companion object {
         /**
@@ -37,6 +62,26 @@ data class Segment(
             to = to,
             startsAt = from.instantAt(departingAt),
             endsAt = to.instantAt(arrivingAt),
+        )
+
+        /**
+         * Builds the Segment for something the traveller takes custody of and
+         * gives back, where both ends are appointments they have to keep.
+         *
+         * [to] defaults to [from] because most rentals come back to the branch
+         * they left, and a one-way is the thing worth having to say out loud.
+         */
+        fun held(
+            from: Place,
+            collectedAt: LocalDateTime,
+            to: Place = from,
+            returnedAt: LocalDateTime,
+        ): Segment = Segment(
+            from = from,
+            to = to,
+            startsAt = from.instantAt(collectedAt),
+            endsAt = to.instantAt(returnedAt),
+            endMustBeAttended = true,
         )
     }
 }
