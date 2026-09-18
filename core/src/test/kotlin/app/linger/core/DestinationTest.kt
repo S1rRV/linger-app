@@ -152,4 +152,65 @@ class DestinationTest {
 
         assertEquals(listOf("Medellin"), trip.destinations.map { it.city })
     }
+
+    @Test
+    fun `the trip names itself after where it went`() {
+        // DATA-MODEL.md: built from Destinations in the order they occur, with
+        // Waypoints and Home left out. Never from a month or a year, because
+        // this trip runs 23 December to 3 January and any such name is wrong at
+        // one end.
+        assertEquals("Medellin and Cartagena", sampleTrip().name)
+    }
+
+    @Test
+    fun `three places read as a list`() {
+        val colombia = assertNotNull(Countries.soleZoneOf("CO"))
+        val flights = Booking(
+            references = setOf(Reference("Expedia", "4")),
+            segments = listOf(
+                leg("EWR", LocalDateTime(2026, 12, 23, 23, 59), "SDQ", LocalDateTime(2026, 12, 24, 5, 25)),
+                leg("SDQ", LocalDateTime(2026, 12, 26, 7, 50), "MDE", LocalDateTime(2026, 12, 26, 9, 20)),
+                leg("MDE", LocalDateTime(2026, 12, 29, 5, 0), "CTG", LocalDateTime(2026, 12, 29, 6, 14)),
+                leg("CTG", LocalDateTime(2027, 1, 3, 7, 50), "EWR", LocalDateTime(2027, 1, 3, 15, 0)),
+            ),
+        )
+
+        val trip = Trips.group(listOf(flights), home = newYork).single()
+
+        assertEquals("Santo Domingo, Medellin and Cartagena", trip.name)
+    }
+
+    @Test
+    fun `one place is just that place`() {
+        val flights = Booking(
+            references = setOf(Reference("Expedia", "5")),
+            segments = listOf(
+                leg("EWR", LocalDateTime(2026, 12, 23, 23, 59), "MDE", LocalDateTime(2026, 12, 24, 7, 25)),
+                leg("MDE", LocalDateTime(2027, 1, 3, 13, 19), "EWR", LocalDateTime(2027, 1, 3, 21, 30)),
+            ),
+        )
+
+        val trip = Trips.group(listOf(flights), home = newYork).single()
+
+        assertEquals("Medellin", trip.name)
+    }
+
+    @Test
+    fun `a trip with nowhere named falls back rather than coming out blank`() {
+        // A Booking whose only Places are a car branch nobody has given a town
+        // to. Better a plain word than an empty title in a list of trips.
+        val nameless = Booking(
+            references = setOf(Reference("Sixt", "6")),
+            segments = listOf(
+                Segment.held(
+                    from = assertNotNull(Airports.find("MDE")),
+                    collectedAt = LocalDateTime(2026, 12, 24, 12, 0),
+                    returnedAt = LocalDateTime(2026, 12, 28, 12, 0),
+                ),
+            ),
+        )
+        val trip = Trip(bookings = listOf(nameless), home = Home(assertNotNull(Airports.find("MDE"))))
+
+        assertEquals("Trip", trip.name)
+    }
 }

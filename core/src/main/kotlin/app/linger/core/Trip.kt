@@ -56,6 +56,28 @@ data class Trip(
      */
     val waypoints: List<Place> get() = visited().filterNot { it.isDestination }.map { it.place }
 
+    /**
+     * What to call this Trip, until the traveller renames it.
+     *
+     * The Destinations in the order they occur, so the sample trip is "Medellin
+     * and Cartagena". Waypoints and Home are left out: nobody describes their
+     * holiday by the airport they changed planes in.
+     *
+     * Never built from a month or a year. That trip runs 23 December to 3
+     * January, and any name of that shape is wrong at one end.
+     */
+    val name: String
+        get() {
+            val towns = destinations.map { it.city }.distinct()
+            return when (towns.size) {
+                0 -> "Trip"
+                1 -> towns.single()
+                // "A, B and C" rather than a bare join, because this is read as
+                // a sentence in a list of trips.
+                else -> towns.dropLast(1).joinToString(", ") + " and " + towns.last()
+            }
+        }
+
     private data class Stop(val place: Place, val at: Instant, val isDestination: Boolean)
 
     /**
