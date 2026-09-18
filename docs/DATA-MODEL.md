@@ -6,9 +6,11 @@ export.
 
 ## Five rules that hold
 
-1. **A booking is not an event.** One car rental is one booking and two timeline
-   events. One multi-leg flight is one booking, four events, and one check-in
-   state.
+1. **A booking is not an event.** One car rental is one booking, one segment and
+   two timeline events. One multi-leg flight is one booking, four segments, four
+   events, and one check-in state. What splits a segment into two events is not
+   its booking kind but whether its end is an Appointment, something the
+   traveller has to turn up and do. A return is; a landing is not.
 2. **Derived is disposable.** Events, reminders, calendar rows, pins and passes
    are regenerated from bookings. Nothing downstream is hand-edited without being
    marked, and marked things survive regeneration.
@@ -148,6 +150,12 @@ options and their prices), `access` (door code, lockbox, host contact), `wifi`
 `pickup` / `dropoff` (Place plus datetime with zone, counter detail), `vehicle`
 (class, extras), `fuel_policy` and `insurance` (cover, excess) **only when the
 confirmation states them**, `change_deadline`.
+
+The two ends are one Segment, not two. Where `dropoff` is a different Place from
+`pickup`, the Booking is flagged as a one-way handback and the return is shown
+differently: the traveller owes a counter visit somewhere they have not been.
+Neither sample rental does this, so it is the one car rule not drawn from a
+confirmation.
 
 There is deliberately no `driver_requirements` field. What a driver must bring
 is left to the traveller: see the note under Car in `CONTEXT.md`.

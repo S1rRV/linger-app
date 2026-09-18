@@ -18,7 +18,7 @@ if the field moves, so does the reminder.
 | Stay | Checkout tomorrow | Check-out time | Day before, 20:00 local | Push | Always | Mentions the late-checkout price |
 | Stay | Pack up | Check-out time | T-60 min | Push | No late checkout booked | Suppressed if checkout is after 12:00 |
 | Car | Pickup | Pickup time | T-60 min | Push | Always | Includes the counter location, not just the branch |
-| Car | Return | Drop-off time | T-3 h | Push | Always | Mentions fuel only when a fuel policy was actually stated |
+| Car | Return | Drop-off time | T-3 h | Push | Always | Mentions fuel only when a fuel policy was actually stated, and names the drop-off branch whenever it differs from the pickup |
 | Car | Free change ends | Vendor change deadline | T-6 h before the deadline | Push | Changeable reservation | |
 | Car | Confirm final cost | Drop-off time | T+1 d, 10:00 | Push | Vendor labelled the amount an estimate | Asks whether the amount changed, and takes a new figure |
 | Rail | Platform and boarding | Departure time | T-45 min | Push | Always | Platform data arrives late, so the push waits for it |
