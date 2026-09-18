@@ -41,11 +41,24 @@ because a trip can legitimately start somewhere else.
 **Home is snapshotted onto each Trip.** Otherwise moving house would silently
 rewrite the boundaries of every past Trip.
 
-**The rule will still be wrong sometimes.** A traveller who passes through their
-home airport on a connection without going home is one case; a second home is
-another. This is why merging and splitting Trips by hand is in build one rather
-than deferred: an automatic rule with no manual override leaves the traveller
-looking at a mess they cannot fix.
+**The rule will still be wrong sometimes.** A second home is one case. This is
+why merging and splitting Trips by hand is in build one rather than deferred: an
+automatic rule with no manual override leaves the traveller looking at a mess
+they cannot fix.
+
+**Amended while building seam 4.** Two things this ADR got wrong.
+
+*Home is a set of Places, not one.* New York is one place to the person who
+lives there and three airports to an airline. With a single Place, flying back
+into JFK never counts as coming home and two Trips are silently glued into one.
+
+*A connection through the home airport is solved, not tolerated.* This ADR
+listed it as a case the rule would get wrong. It is not: a Home touched inside a
+single Booking is a connection, because two hours in Terminal C on one ticket is
+not going home whatever the airport code says. Reading the Booking settles it
+and adds no threshold, so the "no tuning" claim above still holds. Only two
+separate tickets meeting at the home airport remain ambiguous, and that case is
+genuinely ambiguous to a human too.
 
 **A Booking entirely at Home creates no Trip.** A restaurant in your own city is
 not the start of a holiday.

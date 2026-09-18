@@ -168,7 +168,7 @@ model rather than a field, and it has no bearing on whether the timeline works.
 
 | In build one | Out of build one |
 | --- | --- |
-| Home, asked once during setup | Automatic archiving |
+| Home, asked once during setup, as every airport that counts as being back | Automatic archiving |
 | Trip range: first Segment start to last Segment end | |
 | Destinations and Waypoints told apart | |
 | Name derived from Destinations, always editable | |
