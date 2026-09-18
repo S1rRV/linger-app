@@ -8,6 +8,22 @@ package app.linger.core
  */
 data class Booking(
     val segments: List<Segment>,
+    /**
+     * Every number this Booking is known by, each labelled with its issuer.
+     *
+     * A set rather than one code. CONTEXT.md's Booking entry used to say "one
+     * confirmation code", which the sample set disproves: the same four flights
+     * are 73545609581279 to Expedia and AFGZ2M to Arajet.
+     */
+    val references: Set<Reference> = emptySet(),
+    /**
+     * Who is travelling, already resolved to people.
+     *
+     * Resolution happens upstream, at INGESTION.md stage 05, before anything
+     * here compares two Bookings. Turning "Varun Sudhakar" and "Varun" into one
+     * person is a different problem from telling two Bookings apart.
+     */
+    val travellers: Set<Traveller> = emptySet(),
 ) {
     /**
      * Whether something taken out here has to be given back somewhere else.

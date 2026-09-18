@@ -31,6 +31,19 @@ data class Segment(
      * needs no new branch.
      */
     val endMustBeAttended: Boolean = false,
+    /**
+     * Who performs this leg on the day: the airline flying it, the company
+     * handing over the keys. Part of ADR-0003's journey key.
+     */
+    val operator: String? = null,
+    /**
+     * The flight or train number, where one exists.
+     *
+     * Nullable because half of phase 0 has none: neither Sixt nor Alamo has an
+     * equivalent, which is why ADR-0003 demoted this to a tiebreaker and keys
+     * on the start place instead.
+     */
+    val serviceNumber: String? = null,
 ) {
     val duration: Duration get() = endsAt - startsAt
 
@@ -57,11 +70,15 @@ data class Segment(
             departingAt: LocalDateTime,
             to: Place,
             arrivingAt: LocalDateTime,
+            operator: String? = null,
+            serviceNumber: String? = null,
         ): Segment = Segment(
             from = from,
             to = to,
             startsAt = from.instantAt(departingAt),
             endsAt = to.instantAt(arrivingAt),
+            operator = operator,
+            serviceNumber = serviceNumber,
         )
 
         /**
@@ -76,12 +93,14 @@ data class Segment(
             collectedAt: LocalDateTime,
             to: Place = from,
             returnedAt: LocalDateTime,
+            operator: String? = null,
         ): Segment = Segment(
             from = from,
             to = to,
             startsAt = from.instantAt(collectedAt),
             endsAt = to.instantAt(returnedAt),
             endMustBeAttended = true,
+            operator = operator,
         )
     }
 }
