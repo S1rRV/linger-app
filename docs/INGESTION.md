@@ -89,7 +89,8 @@ and why a rebooking supersedes rather than duplicates.
 
 - Find the trip by date-range plus geography overlap
 - No trip: create one, named from the destination
-- Upsert by `(vendor, confirmation code, segment key)`
+- Upsert by the journey itself: per Segment, `(operator, service number, local
+  date, traveller)`. Not by the reference, which differs per seller.
 - Revisions are versioned v1, v2, v3; nothing is overwritten
 - Cross-booking conflict scan (buffers, overlaps, impossible sequences)
 

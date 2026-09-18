@@ -36,6 +36,25 @@ nothing and it is the only way to test the timeline and reminders when the
 parser is the thing that is broken. Without it, every model bug looks like a
 parser bug.
 
+### Flights: in and out
+
+Settled against the real confirmations in `docs/samples/`.
+
+| In build one | Out of build one |
+| --- | --- |
+| Scheduled times from the confirmation | Live delay and gate tracking, which needs a paid feed |
+| When check-in opens, and a link to the airline | Checking in on the traveller's behalf, which airlines do not permit |
+| Self-connection warnings | Boarding passes, untestable until the pass exists |
+| A bundled airport list: code, city, timezone | |
+
+The airport list is a hard dependency, not a nicety. Every time in both flight
+confirmations is a bare local clock reading such as "11:59pm Wed, Dec 23", and
+the airport code is the only route to its zone. Without the list, the sample trip
+alone crosses four zones and every reminder is wrong.
+
+Check-in opening times are per airline. Hard-code Arajet and JetSMART only, and
+say so, rather than implying general coverage.
+
 ### Done means
 
 One real trip of the author's, added entirely by upload and scan, where every

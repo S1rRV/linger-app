@@ -12,8 +12,13 @@ export.
 2. **Derived is disposable.** Events, reminders, calendar rows, pins and passes
    are regenerated from bookings. Nothing downstream is hand-edited without being
    marked, and marked things survive regeneration.
-3. **Idempotency key is `(vendor, confirmation code, segment key)`.** Forward the
-   same email three times and you get one booking at version 1.
+3. **Identity is the journey, not the reference.** Two sellers give different
+   references for the same flights, so a Booking is identified by what it
+   actually is: for each Segment, `(operator, service number, local date,
+   traveller)`. Forward the same email three times and you get one Booking;
+   receive it from Expedia and from the airline and you still get one Booking,
+   carrying both references. See
+   [ADR-0003](adr/0003-identity-by-journey-not-reference.md).
 4. **Versions, not overwrites.** A change email writes v2 and points v1 at it.
    Undo is walking back one version.
 5. **Every instant carries a zone.** There is no naive datetime anywhere in the

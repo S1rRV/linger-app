@@ -100,8 +100,9 @@ _Avoid_: Stopover, connection
 **Self-connection**:
 A wait between two Segments of DIFFERENT Bookings at the same place. Looks like
 a Layover to the traveller and is not one: a delay on the first leaves the
-second operator owing nothing. Always surfaced, never silently treated as a
-Layover.
+second operator owing nothing. Recognised when the second departs the same place
+within six hours of the first arriving, with no Stay booked in between. Always
+surfaced, never silently treated as a Layover.
 _Avoid_: Connection, transfer, self-transfer
 
 ## Terms deliberately not used
