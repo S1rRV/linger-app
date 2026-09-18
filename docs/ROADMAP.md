@@ -61,6 +61,33 @@ alone crosses four zones and every reminder is wrong.
 Check-in opening times are per airline. Hard-code Arajet and JetSMART only, and
 say so, rather than implying general coverage.
 
+### Cars: in and out
+
+Settled against the Sixt and Alamo confirmations in `docs/samples/`.
+
+| In build one | Out of build one |
+| --- | --- |
+| Two Segments per rental, collect and return | Anything about what the driver must bring |
+| Times from the vendor's `.ics` when one is attached | Fetching a voucher from behind a broker login |
+| Timezone resolved by fallback, see below | |
+| A flag when a required document is not in our hands | |
+
+**Timezone fallback**, because a car branch has no airport code. Try in order:
+the attached calendar file, the airport code when the branch sits at an airport,
+then the country. Country resolves more often than it sounds: Colombia has one
+zone all year, and so does India. It fails for the United States and Brazil, and
+a booking that reaches the end of the chain is flagged rather than guessed.
+
+**No driver requirements, deliberately.** Alamo lists three things to bring;
+Sixt lists none, which does not mean none are needed. Rather than show one and
+not the other, or invent per-country rules, the app says nothing. What to bring
+is the traveller's own business. There is no field for it, so nothing can creep
+back in.
+
+**Vendor secrets are not references.** Sixt emails a security code beside its
+reservation number. It is kept, shown behind a tap, and never put on a summary
+or into a calendar export.
+
 ### Done means
 
 One real trip of the author's, added entirely by upload and scan, where every

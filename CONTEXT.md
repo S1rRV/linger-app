@@ -71,7 +71,9 @@ _Avoid_: Free time, hole, window
 
 **Car**:
 A Booking where the traveller takes custody of a vehicle and drives it. Carries
-fuel policy, insurance excess and licence requirements.
+fuel policy and insurance excess when the confirmation states them, and nothing
+about what the driver must bring: licences, permits and payment cards are the
+traveller's own business, not the app's.
 _Avoid_: Rental, hire, vehicle
 
 **Transit**:
@@ -104,6 +106,18 @@ second operator owing nothing. Recognised when the second departs the same place
 within six hours of the first arriving, with no Stay booked in between. Always
 surfaced, never silently treated as a Layover.
 _Avoid_: Connection, transfer, self-transfer
+
+**Reference**:
+A number quoted openly to identify a Booking: a confirmation code, a ticket
+number, a broker's booking number. A Booking holds a set of them, each labelled
+with who issued it, because the Seller and the Operator each have their own.
+_Avoid_: Booking number, confirmation, PNR, code
+
+**Credential**:
+A secret that grants control of a Booking, such as the security code Sixt emails
+beside its reservation number. Never shown on a summary and never exported to a
+calendar, since a calendar entry can surface on a shared or work screen.
+_Avoid_: Code, PIN, password, token
 
 ## Terms deliberately not used
 

@@ -96,8 +96,11 @@ options and their prices), `access` (door code, lockbox, host contact), `wifi`
 ### Car payload
 
 `pickup` / `dropoff` (Place plus datetime with zone, counter detail), `vehicle`
-(class, extras such as ETC), `driver_requirements` (IDP, minimum age, deposit
-card), `fuel_policy`, `insurance` (cover, excess), `change_deadline`.
+(class, extras), `fuel_policy` and `insurance` (cover, excess) **only when the
+confirmation states them**, `change_deadline`.
+
+There is deliberately no `driver_requirements` field. What a driver must bring
+is left to the traveller: see the note under Car in `CONTEXT.md`.
 
 ### Reservation and ticket payloads
 

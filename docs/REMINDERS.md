@@ -1,6 +1,6 @@
 # Reminder rules
 
-Twenty-two rules, all derived from booking fields rather than set by hand. This
+Twenty-one rules, all derived from booking fields rather than set by hand. This
 table is the contract: if a booking carries the field, the reminder exists, and
 if the field moves, so does the reminder.
 
@@ -17,9 +17,8 @@ if the field moves, so does the reminder.
 | Stay | Arrival window | Check-in time + geofence | On arrival, or at check-in time | Push | Self check-in or a door code | Opens the arrival card with the code |
 | Stay | Checkout tomorrow | Check-out time | Day before, 20:00 local | Push | Always | Mentions the late-checkout price |
 | Stay | Pack up | Check-out time | T-60 min | Push | No late checkout booked | Suppressed if checkout is after 12:00 |
-| Car | Documents needed | Pickup time | T-24 h | Push | Country requires an IDP or a deposit card | Derived from country and vendor, not the email |
 | Car | Pickup | Pickup time | T-60 min | Push | Always | Includes the counter location, not just the branch |
-| Car | Refuel and return | Drop-off time | T-3 h | Push | Fuel policy is return-full | Routes via the nearest open station |
+| Car | Return | Drop-off time | T-3 h | Push | Always | Mentions fuel only when a fuel policy was actually stated |
 | Car | Free change ends | Vendor change deadline | T-6 h before the deadline | Push | Changeable reservation | |
 | Rail | Platform and boarding | Departure time | T-45 min | Push | Always | Platform data arrives late, so the push waits for it |
 | Dining | Cancellation fee starts | Policy deadline | T-6 h, at 12:00 local | Push | A fee applies | |
