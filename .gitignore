@@ -1,0 +1,21 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.kotlin/
+
+# Android, for when the app module lands
+local.properties
+*.apk
+*.aab
+captures/
+.cxx/
+
+# OS
+.DS_Store
