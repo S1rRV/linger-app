@@ -42,14 +42,26 @@ _Avoid_: Reservation, itinerary item, ticket
 
 **Segment**:
 One timed leg of a Booking, with a start, an end, and a place at each. A
-two-leg flight has two Segments; a car rental has two (collection and return);
-a dinner has one. Segments are the only place times are stored.
+two-leg flight has two Segments; a car rental has one, because the traveller
+holds the car from collection to return without a break; a dinner has one.
+Segments are the only place times are stored. How many Segments a Booking has
+is a separate question from how many TimelineEvents it draws.
 _Avoid_: Leg, event, slice
 
+**Appointment**:
+The end of a Segment the traveller has to turn up and do something at. A rental
+return is one; an arrival is not, because the plane lands whether or not they
+participate. This is what decides whether a Segment draws one TimelineEvent or
+two, so a ferry with a vehicle deck needs no new rule. A one-way rental, whose
+appointment is somewhere the traveller has not been, is flagged on the Booking.
+_Avoid_: Obligation, task, action, checkpoint
+
 **TimelineEvent**:
-A positioned thing on a Trip's day view. Every Segment projects to exactly one
-TimelineEvent, and some TimelineEvents are derived instead (leave-by, arrive)
-with no Segment behind them. Always has a time window.
+A positioned thing on a Trip's day view. A Segment projects to one TimelineEvent
+spanning it, or to two moments, one at each end, when the Segment ends in an
+Appointment. Some TimelineEvents are derived instead (leave-by, arrive) with no
+Segment behind them. Always has a time window, which for a collection or a
+return is a single instant.
 _Avoid_: Event, entry, item, activity
 
 **Reminder**:

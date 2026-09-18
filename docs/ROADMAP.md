@@ -72,7 +72,7 @@ Settled against the Sixt and Alamo confirmations in `docs/samples/`.
 
 | In build one | Out of build one |
 | --- | --- |
-| Two Segments per rental, collect and return | Anything about what the driver must bring |
+| One Segment per rental, drawing a collect and a return | Anything about what the driver must bring |
 | Times from the vendor's `.ics` when one is attached | Fetching a voucher from behind a broker login |
 | Timezone resolved by fallback, see below | |
 | A flag when a required document is not in our hands | |

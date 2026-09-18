@@ -2,8 +2,9 @@
 
 A Booking is one commercial agreement with one vendor. A Segment is one timed
 leg of it, with a start, an end and a place at each. A return flight with a
-stopover each way is one Booking and four Segments; a car rental is two; a
-dinner is one. Times are stored only on Segments, never on the Booking.
+stopover each way is one Booking and four Segments; a car rental is one, held
+from collection to return; a dinner is one. Times are stored only on Segments,
+never on the Booking.
 
 We chose this because the two hardest features in the product both operate on
 timed intervals across bookings of different kinds, and neither works without a
@@ -40,3 +41,13 @@ identically by the disruption logic.
 A rule follows from this and must hold: **no payload may store a time.** A
 `departs_at` on a flight payload is a bug, because it creates a second place
 that claims to know when the flight leaves.
+
+**Amended while building seam 2.** This originally said a car rental is two
+Segments, collection and return. That was counting obligations, not legs: a
+collection is not a leg, and modelling it as one gives a Segment whose two
+Places are the same branch and whose start and end are the same instant. The
+traveller holds the car continuously, so a rental is one Segment, and the
+Segment carries whether its end is an Appointment. That is what draws two
+events, and it is a rule about the end of a leg rather than about booking
+kinds, so a ferry with a vehicle deck or a left-luggage locker needs no new
+branch.
