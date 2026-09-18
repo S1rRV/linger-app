@@ -25,4 +25,10 @@ object Reminders {
                     Reminder(ReminderRule.RETURN, segment.endsAt - BEFORE_GIVING_BACK),
                 )
             }
+            // Never in the past, and silently. Forwarding an old confirmation
+            // should not buzz about a car collected last Christmas, and firing
+            // late is worse than not firing: it teaches the traveller that the
+            // notifications are noise. The fact stays on the Booking, so a
+            // screen can still say what happened; only the buzz is dropped.
+            .filter { it.firesAt > now }
 }

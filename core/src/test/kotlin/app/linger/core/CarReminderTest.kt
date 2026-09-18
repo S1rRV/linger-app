@@ -85,4 +85,25 @@ class CarReminderTest {
 
         assertTrue(reminders.none { it.rule == ReminderRule.PICKUP || it.rule == ReminderRule.RETURN })
     }
+
+    @Test
+    fun `importing a confirmation after the trip schedules nothing`() {
+        // Forwarding an old email should not make the phone buzz about a car
+        // collected last Christmas. REMINDERS.md drops these silently rather
+        // than firing them late, and the fact stays on the Booking so a screen
+        // can still say what happened.
+        val reminders = Reminders.forBooking(sixt(), now = Instant.parse("2027-03-01T00:00:00Z"))
+
+        assertEquals(emptyList(), reminders)
+    }
+
+    @Test
+    fun `the half of a booking still ahead survives`() {
+        // Imported between collecting and returning, which is the ordinary case
+        // for a forwarded email mid-trip. The pickup is gone and the return is
+        // not, and dropping both would lose the reminder that matters most.
+        val reminders = Reminders.forBooking(sixt(), now = Instant.parse("2026-12-26T12:00:00Z"))
+
+        assertEquals(listOf(ReminderRule.RETURN), reminders.map { it.rule })
+    }
 }
