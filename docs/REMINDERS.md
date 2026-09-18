@@ -1,6 +1,6 @@
 # Reminder rules
 
-Twenty-one rules, all derived from booking fields rather than set by hand. This
+Twenty-two rules, all derived from booking fields rather than set by hand. This
 table is the contract: if a booking carries the field, the reminder exists, and
 if the field moves, so does the reminder.
 
@@ -20,6 +20,7 @@ if the field moves, so does the reminder.
 | Car | Pickup | Pickup time | T-60 min | Push | Always | Includes the counter location, not just the branch |
 | Car | Return | Drop-off time | T-3 h | Push | Always | Mentions fuel only when a fuel policy was actually stated |
 | Car | Free change ends | Vendor change deadline | T-6 h before the deadline | Push | Changeable reservation | |
+| Car | Confirm final cost | Drop-off time | T+1 d, 10:00 | Push | Vendor labelled the amount an estimate | Asks whether the amount changed, and takes a new figure |
 | Rail | Platform and boarding | Departure time | T-45 min | Push | Always | Platform data arrives late, so the push waits for it |
 | Dining | Cancellation fee starts | Policy deadline | T-6 h, at 12:00 local | Push | A fee applies | |
 | Dining | Leave for dinner | Reservation time | Travel time + 10 min | Push | Always | Re-anchors if the afternoon overruns |

@@ -89,7 +89,7 @@ guardrail.
 | `kind` | flight, stay, car, rail, dining, ticket, insurance, other |
 | `vendor` | Vendor |
 | `codes` | confirmation, ticket, voucher, PNR |
-| `money` | amount, currency, paid, `refundable_until` |
+| `money` | amount, currency, `vendor_label`, `rate_at_purchase`, optional `breakdown[]` |
 | `travellers` | Traveller[] |
 | `version` | int, `superseded_by` |
 | `source` | IngestionItem |
@@ -125,6 +125,24 @@ is left to the traveller: see the note under Car in `CONTEXT.md`.
 `party_size`, `window` (start, latest entry), `dress_or_practical_notes`,
 `cancellation` (deadline, fee), `tickets[]` (per-person number plus
 PassArtifact).
+
+### Money, on any Booking
+
+`amount` and `currency` exactly as stated, plus `vendor_label` so the
+confirmation's own wording survives ("Total paid", "Total Cost", "Estimated
+rental cost"). The stated figure is treated as paid; see the Amount entry in
+`CONTEXT.md`.
+
+`rate_at_purchase` is captured once, when the Booking is first stored, and never
+refetched. This is what keeps a Trip's combined total stable: a live rate would
+make last year's trip cost a different number every morning.
+
+`breakdown[]` is optional and kept only when given. The Arajet confirmation
+itemises fare 2,666.78, bags 260.00 and fees 13.00; Alamo gives a single total.
+A missing breakdown is never computed.
+
+`Share[]` exists only when a Booking is being split: one row per Traveller, each
+with an amount and a settled or outstanding state. Phase 3.
 
 ### Fare rules, on any Booking
 

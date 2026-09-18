@@ -144,6 +144,25 @@ one. Usually partial: it states what moved and stays silent on everything else,
 which is why the first record stays primary and an Amendment only fills gaps.
 _Avoid_: Change, update, revision
 
+**Amount**:
+What a confirmation states the Booking cost, treated as what was paid. The
+vendor's own label is kept and shown ("Total paid", "Estimated rental cost"),
+but the figure is not hedged: a stated price is the price until a later record
+says otherwise.
+_Avoid_: Price, cost, total, fare
+
+**Rate at purchase**:
+The exchange rate between a Booking's Amount and the account's home currency,
+captured once when the Booking is first stored and never refetched. Frozen so
+that a Trip's combined total is the same number next year as it is today.
+_Avoid_: Exchange rate, FX, conversion
+
+**Share**:
+One Traveller's portion of a Booking's Amount, with its own settled or
+outstanding state. Absent unless someone asks for it: a Booking with Shares is
+being split, one without is simply paid.
+_Avoid_: Split, portion, owed
+
 ## Terms deliberately not used
 
 **Reservation** is the ordinary English word for any Booking, so it cannot also
