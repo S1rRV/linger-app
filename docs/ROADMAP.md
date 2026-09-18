@@ -280,19 +280,27 @@ These change what gets built, so they are worth answering before Phase 1.
 
 1. ~~Which platform first?~~ **Answered:** Android only.
    See [ADR-0002](adr/0002-android-first.md).
-2. **Alias-only at launch, or hold for Gmail verification?** Alias ships months
-   earlier and needs no review, but mailbox connect is what finds past trips and
-   catches changes without a forward rule. Still open, and now a Phase 1
-   question rather than a Phase 0 one, since Phase 0 intake is upload and scan.
+2. ~~Alias-only at launch, or hold for Gmail verification?~~ **Answered: alias
+   ships first, and the Gmail verification is started now in parallel.** Alias
+   needs no review and is never deprecated, so mailbox access is never on the
+   critical path. Verification takes weeks and an annual security assessment,
+   and beginning it early costs nothing, so the two run side by side rather
+   than one behind the other.
 3. ~~Do self-connection warnings survive "show as supplied"?~~ **Answered: yes,
    they stay.** The line between them: a self-connection warning states a fact
    about the relationship between two Bookings, that they are separate tickets
    and a delay on one is not covered by the other. Conflict detection asserts
    that a Booking is itself wrong. Show-as-supplied forbids the second, not the
    first.
-4. **One region first?** Vendor templates and IDP-style derived requirements are
-   regional work. India plus Japan plus Europe is a different template set from
-   US domestic.
+4. ~~One region first?~~ **Answered: US, Canada, India, UK and Europe.** That
+   is the template set to build first. It follows the traveller rather than the
+   map: the account holder is Indian, lives near New York, and the sample trip
+   is a US departure. Japan and the rest of Asia wait.
+
+   Worth naming the cost. Five regions is more vendor templates than one, and
+   it drags in the currencies that make open question 5 real: INR, GBP, EUR and
+   CAD all need a historical rate, where a US-only build would have needed
+   none.
 5. **Which historical exchange-rate source?** Needed for the combined trip
    total, per [ADR-0004](adr/0004-freeze-the-exchange-rate.md). "Google" is not
    callable: there is no public Google FX API, and scraping it is neither

@@ -57,11 +57,17 @@ object Bookings {
     private fun shareAJourney(a: Booking, b: Booking): Boolean {
         if (a.segments.isEmpty() || b.segments.isEmpty()) return false
         if (a.travellers != b.travellers || a.travellers.isEmpty()) return false
-        if (a.segments.size != b.segments.size) return false
-        return a.inOrder().zip(b.inOrder()).all { (mine, theirs) -> mine.isSameJourneyAs(theirs) }
+        // One Segment in common is enough. Airlines routinely confirm one
+        // direction at a time while the seller holds the whole purchase, and
+        // comparing whole journeys filed those as two Bookings, which is the
+        // duplicate this decision exists to prevent.
+        //
+        // It is sound because the same person cannot be on the same flight, on
+        // the same day, under two genuinely separate bookings. That makes the
+        // traveller check load-bearing in a way it was not before: two people
+        // on one flight share every Segment and must stay apart.
+        return a.segments.any { mine -> b.segments.any { theirs -> mine.isSameJourneyAs(theirs) } }
     }
-
-    private fun Booking.inOrder(): List<Segment> = segments.sortedBy { it.startsAt }
 
     private fun Segment.isSameJourneyAs(other: Segment): Boolean =
         journeyKey() == other.journeyKey() && serviceNumberAgreesWith(other)
