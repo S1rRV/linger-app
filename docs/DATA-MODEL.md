@@ -98,9 +98,19 @@ A Booking whose Places are all Home creates no Trip at all.
 Name variants are load-bearing, not cosmetic. [ADR-0003](adr/0003-identity-by-journey-not-reference.md)
 makes the traveller part of how two Bookings are told apart, and the sample set
 renders one person three ways: Sixt writes "Varun Sudhakar Ranipeta", Expedia
-writes "Varun Sudhakar", Booking.com writes "Varun". Match on surname plus first
-initial, and ask rather than guess when it is close. Never merge two people
-silently: a wrong merge is far harder to notice than a wrong split.
+writes "Varun Sudhakar", Booking.com writes "Varun".
+
+**Resolution rule.** Once a profile exists, any rendering of its name is taken
+at face value, so "Varun Ranipeta" and "V Ranipeta" are the same person. The
+written parts must appear in the profile's own order, with a single letter
+matching an initial. Order is what keeps it safe: allow it to float and an
+initial plus a common surname matches most of a household. The cost is that
+"Ranipeta Varun", which many systems produce, is not recognised and is asked
+about.
+
+A name no profile owns is a prompt to set one up, never a person invented for
+the traveller. A name two profiles own is a prompt to choose. Never merge two
+people silently: a wrong merge is far harder to notice than a wrong split.
 
 Legal and Common names are both chosen by the traveller, never derived one from
 the other. The sample set shows why: Sixt needs no passport yet holds the full

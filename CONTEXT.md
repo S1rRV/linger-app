@@ -15,7 +15,9 @@ _Avoid_: Journey, vacation, holiday
 A person who appears on a Booking. Stored once and referenced by many Trips, so
 that what is known about them survives the trip they were first met on. Distinct
 from the account holder, who may book for others. A Traveller never needs an
-account of their own.
+account of their own. Once a profile exists, any rendering of its name in the
+profile's own order resolves to it, initials included. A name with no profile
+behind it is asked about and never invented.
 _Avoid_: User, passenger, guest, customer
 
 **Legal name**:
@@ -188,16 +190,19 @@ years later.
 _Avoid_: Base, origin, residence
 
 **Destination**:
-A Place a Trip is actually about. A Place becomes one when a non-flight Booking
-is anchored there, or when the traveller is there over eight hours with no
-onward flight already booked. Medellin and Cartagena in the sample trip.
+A Place a Trip is actually about. A Place becomes one when a car is collected or
+returned there, when the traveller lands and the next flight out of that town is
+eight hours or more away, or when they land with no onward flight booked at all.
+Medellin and Cartagena in the sample trip. Deduplicated by city, and a town ever
+stayed in is not demoted by a later connection through it.
 _Avoid_: Stop, city, location
 
 **Waypoint**:
 A Place passed through without it becoming a Destination: the sample trip's
 layovers at Santo Domingo, 2 h 25 m, and Punta Cana, 3 h 1 m, both with onward
-flights and nothing booked. Excluded from a Trip's name and from its
-Destination list.
+flights and nothing booked. Excluded from a Trip's name and from its Destination
+list, and kept rather than discarded, because a layover is where a delay bites
+and the day view still has to show the traveller sitting there at 6am.
 _Avoid_: Transit, stopover, connection, hub
 
 ## Terms deliberately not used

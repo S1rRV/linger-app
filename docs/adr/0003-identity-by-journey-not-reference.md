@@ -87,9 +87,16 @@ a match it would otherwise make, and no car confirmation states anything of the
 kind, so a tiebreaker that votes when only one side has an opinion would exclude
 half of phase 0.
 
-**A partial record is still an open question.** The rule as built requires the
-two journeys to have the same number of Segments. An operator that emails only
-the outbound half of a return booking therefore does not match the seller's
-record of all four legs, and would land as a second Booking. Whether any single
-matching Segment should be enough is not settled here, because the sample set
-contains no such email and the answer would be invented.
+**One matching Segment is enough.** This was left open and is now settled. The
+rule first required the two journeys to match whole, so an operator emailing
+only the outbound half of a return booking did not match the seller's record of
+all four legs and landed as a second Booking. That is the duplicate this
+decision exists to prevent, and airlines confirm one direction at a time often
+enough that it was not a corner case.
+
+It is sound because the same person cannot be on the same flight, on the same
+day, under two genuinely separate bookings. The consequence is that the
+traveller in the key now carries more weight than it did: two people on one
+flight share every Segment, and only the traveller keeps their Bookings apart.
+Which means this rule depends on traveller resolution being right, and that is
+its own rule rather than a detail of this one.
