@@ -176,10 +176,13 @@ being split, one without is simply paid.
 _Avoid_: Split, portion, owed
 
 **Home**:
-The Place the account holder departs from and returns to. Set once on the
-Account, never inferred from a Booking, because a trip can start from somewhere
-that is not home. Each Trip keeps a snapshot of it, so a trip taken while living
-elsewhere still reads correctly years later.
+Every Place that counts as the account holder being back. A set rather than one
+Place: New York is one place to the person who lives there and three airports to
+an airline, and a Home of only Newark decides that a flight into JFK never
+brought them home. Set once on the Account, never inferred from a Booking,
+because a trip can start from somewhere that is not home. Each Trip keeps a
+snapshot of it, so a trip taken while living elsewhere still reads correctly
+years later.
 _Avoid_: Base, origin, residence
 
 **Destination**:

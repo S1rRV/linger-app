@@ -33,7 +33,7 @@ export.
 
 | Field | Type |
 | --- | --- |
-| `home` | Place. Asked once during setup, never inferred from a Booking |
+| `home` | Place[]. Every airport that counts as being back, so New York is one Home and three codes. Asked once during setup, never inferred from a Booking |
 | `home_currency` | the currency combined totals are estimated in |
 
 Added because two earlier decisions referred to things that did not exist.
@@ -63,6 +63,14 @@ elsewhere still reads correctly after a move.
 in between. If a Booking returns them Home and the next starts later, that is a
 new Trip. See [ADR-0005](adr/0005-trips-are-bounded-by-being-home.md). The older
 rule, overlap by date range and geography, is replaced.
+
+Read over Segments in time order, not over Bookings: a car collected on the 24th
+sits inside a flight bought in November. **A Home touched inside a single
+Booking is a connection, not a homecoming**, which is how a ticket routed
+through the traveller's own home airport stays one Trip without any threshold.
+
+Grouping is on the account holder alone. A companion who flies home early does
+not end anybody else's Trip, and phase 0 does not try to model that.
 
 **Naming.** Built from Destinations in the order they occur, so the sample trip
 is "Medellin and Cartagena". Waypoints and Home are excluded. Never built from a
