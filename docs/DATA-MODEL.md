@@ -44,12 +44,29 @@ Created by ingestion when no existing trip overlaps by date range and geography.
 | Field | Type |
 | --- | --- |
 | `id` | uuid |
-| `names` | given, surname as printed on documents |
+| `legal_name` | exactly as printed on the passport |
+| `common_name` | used where no document must match |
+| `observed_names` | every rendering seen, each tagged with the vendor that used it |
+| `relationship` | to the account holder, free text |
 | `loyalty` | programme to number |
 | `prefs` | meal, seat, accessibility |
 | `role` | owner, editor, viewer |
 
-Name variants matter: the parser must match `RAMACHANDRAN/VARUN` to a person.
+Name variants are load-bearing, not cosmetic. [ADR-0003](adr/0003-identity-by-journey-not-reference.md)
+makes the traveller part of how two Bookings are told apart, and the sample set
+renders one person three ways: Sixt writes "Varun Sudhakar Ranipeta", Expedia
+writes "Varun Sudhakar", Booking.com writes "Varun". Match on surname plus first
+initial, and ask rather than guess when it is close. Never merge two people
+silently: a wrong merge is far harder to notice than a wrong split.
+
+Legal and Common names are both chosen by the traveller, never derived one from
+the other. The sample set shows why: Sixt needs no passport yet holds the full
+legal name, so which name a vendor received says nothing about which name the
+traveller would have picked.
+
+**No identity documents here.** Passport number, visa, date of birth and phone
+are deliberately absent until Phase 3. See the Document entity and the ingestion
+guardrail.
 
 ### ShareGrant
 

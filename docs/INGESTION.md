@@ -127,6 +127,7 @@ An app that reads your mail earns trust by being boring about it.
 | Never destructive | Ingestion can add and supersede. It cannot delete a booking, a document, or anything edited by hand. |
 | Always auditable | Trip Activity shows every applied change, its source message, and a one-tap undo for 30 days. |
 | Source retained | The original PDF or image stays attached to the booking. If the parse was wrong, the truth is still visible. |
+| Never reads identity | The pipeline does not extract a passport number, visa, date of birth or personal phone number, even when a vendor includes one. Identity data is typed by the traveller on their device or it does not exist, which keeps the server permanently free of it. That is a far easier promise to keep than deleting it afterwards. |
 | No data out | No vendor, airline or hotel is contacted on the traveller's behalf. Schedule lookups are read only and carry no traveller data. |
 | Template rot watched | A vendor redesign shows up as a confidence drop across one sender, which alerts the template owner before users notice. |
 

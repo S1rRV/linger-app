@@ -88,6 +88,25 @@ back in.
 reservation number. It is kept, shown behind a tap, and never put on a summary
 or into a calendar export.
 
+### Travellers: in and out
+
+| In build one | Out of build one |
+| --- | --- |
+| Legal name, common name, observed variants | Passport, visa, date of birth, phone |
+| Relationship to the account holder | Any document vault |
+| Matching a name across vendors | Accounts or logins for companions |
+
+Names are in build one because they are load-bearing, not because they are easy.
+[ADR-0003](adr/0003-identity-by-journey-not-reference.md) makes the traveller
+part of how two Bookings are told apart, and the sample set renders one person
+three ways across four vendors, so deduplication does not work until name
+matching does.
+
+Identity documents stay out until something reads them. A stored passport number
+that no feature consumes is liability with no upside. When a feature needs one,
+it arrives with the rule already written: typed on the device, never parsed from
+an email, never sent to the server, never in a cloud backup.
+
 ### Done means
 
 One real trip of the author's, added entirely by upload and scan, where every
@@ -134,7 +153,8 @@ Storyboard frames: A3, C4, E2, E4, G1, G2, H1, H2, H3, D3, D5.
 - Gap detection and the fitted-suggestion engine
 - Co-travellers and per-segment membership
 - Read-only share links and the printed packet
-- Document vault with expiry rules
+- Document vault with expiry rules: passport, visa, date of birth, phone
+  (deferred from Phase 0 deliberately, see Travellers above)
 - Post-trip receipts, expenses and export
 
 Retention features. None of them work before the timeline is reliable.

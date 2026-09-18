@@ -12,9 +12,28 @@ every other concept hangs off.
 _Avoid_: Journey, vacation, holiday
 
 **Traveller**:
-A person who appears on a booking. Distinct from the account holder, who may
-book for others.
+A person who appears on a Booking. Stored once and referenced by many Trips, so
+that what is known about them survives the trip they were first met on. Distinct
+from the account holder, who may book for others. A Traveller never needs an
+account of their own.
 _Avoid_: User, passenger, guest, customer
+
+**Legal name**:
+A Traveller's name exactly as printed on their passport. Required wherever a
+document must match at a border or a gate, which in practice means flights.
+_Avoid_: Full name, real name, official name
+
+**Common name**:
+The name a Traveller uses where nothing has to match a document. Chosen by them,
+not derived: one traveller drops a middle name here that their passport carries.
+Never assumed to be the Legal name with parts removed.
+_Avoid_: Short name, preferred name, nickname
+
+**Relationship**:
+How a Traveller stands to the account holder, in the account holder's own words.
+Free text with suggestions, never a fixed list, because a list is always wrong
+for somebody.
+_Avoid_: Type, role, connection
 
 **Booking**:
 One commercial agreement with one vendor, identified by one confirmation code.
