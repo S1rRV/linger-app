@@ -151,4 +151,38 @@ class CarTimelineTest {
 
         assertFalse(booking.hasOneWayHandback)
     }
+
+    @Test
+    fun `each event knows the segment and the end it came from`() {
+        // The export is the first thing that needs this, and it needs it for
+        // three separate reasons: a stable id per event, a title that names the
+        // operator, and knowing whether to give a moment a block of time.
+        // DATA-MODEL.md always said a TimelineEvent carries booking_id and
+        // derived_from; this is the point at which they earn their place.
+        val poblado = branch("Sixt Medellin City El Poblado")
+        val rental = Segment.held(
+            from = poblado,
+            collectedAt = LocalDateTime(2026, 12, 24, 12, 0),
+            returnedAt = LocalDateTime(2026, 12, 28, 12, 0),
+        )
+
+        val timeline = Booking(segments = listOf(rental)).timeline()
+
+        assertEquals(listOf(rental, rental), timeline.map { it.segment })
+        assertEquals(listOf(SegmentEnd.START, SegmentEnd.END), timeline.map { it.part })
+    }
+
+    @Test
+    fun `a flight event covers the whole segment rather than one end of it`() {
+        val leg = Segment.between(
+            from = assertNotNull(Airports.find("EWR")),
+            departingAt = LocalDateTime(2026, 12, 23, 23, 59),
+            to = assertNotNull(Airports.find("SDQ")),
+            arrivingAt = LocalDateTime(2026, 12, 24, 5, 25),
+        )
+
+        val timeline = Booking(segments = listOf(leg)).timeline()
+
+        assertEquals(listOf(SegmentEnd.WHOLE), timeline.map { it.part })
+    }
 }

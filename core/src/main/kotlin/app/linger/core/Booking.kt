@@ -62,11 +62,31 @@ data class Booking(
             .flatMap { segment ->
                 if (segment.endMustBeAttended) {
                     listOf(
-                        TimelineEvent(segment.startsAt, segment.startsAt, segment.from),
-                        TimelineEvent(segment.endsAt, segment.endsAt, segment.to),
+                        TimelineEvent(
+                            startsAt = segment.startsAt,
+                            endsAt = segment.startsAt,
+                            place = segment.from,
+                            segment = segment,
+                            part = SegmentEnd.START,
+                        ),
+                        TimelineEvent(
+                            startsAt = segment.endsAt,
+                            endsAt = segment.endsAt,
+                            place = segment.to,
+                            segment = segment,
+                            part = SegmentEnd.END,
+                        ),
                     )
                 } else {
-                    listOf(TimelineEvent(segment.startsAt, segment.endsAt, segment.from))
+                    listOf(
+                        TimelineEvent(
+                            startsAt = segment.startsAt,
+                            endsAt = segment.endsAt,
+                            place = segment.from,
+                            segment = segment,
+                            part = SegmentEnd.WHOLE,
+                        ),
+                    )
                 }
             }
             // Sorted after the split, not before: a rental collected on Thursday
