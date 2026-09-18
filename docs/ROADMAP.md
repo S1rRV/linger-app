@@ -17,6 +17,11 @@ places exactly as the vendor stated them. It does not second-guess them, adjust
 them, or tell the traveller that a booking looks wrong. Detecting that one
 booking contradicts another is real work and it is not in build one.
 
+The one thing that is in: stating a relationship between two Bookings, such as a
+self-connection warning. Saying "these are separate tickets, a delay on the first
+is not covered by the second" is a fact about the pair. Saying "this booking is
+wrong" is a judgement about one of them. The first is allowed, the second is not.
+
 - Trip, Booking, Segment, TimelineEvent, Reminder tables
   (see [ADR-0001](adr/0001-bookings-split-into-segments.md))
 - Day timeline and trip home
@@ -50,7 +55,7 @@ Settled against the real confirmations in `docs/samples/`.
 | --- | --- |
 | Scheduled times from the confirmation | Live delay and gate tracking, which needs a paid feed |
 | When check-in opens, and a link to the airline | Checking in on the traveller's behalf, which airlines do not permit |
-| (self-connection warnings: see open question 5) | Boarding passes, untestable until the pass exists |
+| Self-connection warnings | Boarding passes, untestable until the pass exists |
 | A bundled airport list: code, city, timezone | |
 
 The airport list is a hard dependency, not a nicety. Every time in both flight
@@ -197,15 +202,12 @@ These change what gets built, so they are worth answering before Phase 1.
    earlier and needs no review, but mailbox connect is what finds past trips and
    catches changes without a forward rule. Still open, and now a Phase 1
    question rather than a Phase 0 one, since Phase 0 intake is upload and scan.
-3. **Do self-connection warnings survive "show as supplied"?** Round two of the
-   flights grilling put them in build one: when one flight lands and another
-   leaves the same airport within six hours on a separate booking, say that a
-   delay on the first is not covered by the second. A later instruction says
-   bookings are shown as supplied, with no conflict detection. These pull in
-   opposite directions, and the warning has not been removed pending an answer.
-   The distinction available, if wanted: a self-connection warning states a fact
-   about two bookings, whereas conflict detection asserts that one of them is
-   wrong.
+3. ~~Do self-connection warnings survive "show as supplied"?~~ **Answered: yes,
+   they stay.** The line between them: a self-connection warning states a fact
+   about the relationship between two Bookings, that they are separate tickets
+   and a delay on one is not covered by the other. Conflict detection asserts
+   that a Booking is itself wrong. Show-as-supplied forbids the second, not the
+   first.
 4. **One region first?** Vendor templates and IDP-style derived requirements are
    regional work. India plus Japan plus Europe is a different template set from
    US domestic.
