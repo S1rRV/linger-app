@@ -54,6 +54,33 @@ One inbound thing to be read: an email, an attachment, a scan, an upload. The
 audit record that explains why a Booking exists.
 _Avoid_: Message, import, source
 
+**Idea**:
+A place someone saved for a Trip without choosing when. Has no time. Promoting
+an Idea puts it on a day and leaves the Idea marked as promoted.
+_Avoid_: Saved place, bookmark, wishlist item
+
+**Plan**:
+A TimelineEvent the traveller placed themselves, with no Booking behind it. A
+visit they intend, not a thing they bought.
+_Avoid_: Draft, tentative booking, pencilled-in
+
+**Gap**:
+Unclaimed time between two consecutive TimelineEvents. Always calculated when
+read, never stored, so it cannot go stale when something moves.
+_Avoid_: Free time, hole, window
+
+**Car**:
+A Booking where the traveller takes custody of a vehicle and drives it. Carries
+fuel policy, insurance excess and licence requirements.
+_Avoid_: Rental, hire, vehicle
+
+**Transit**:
+A Booking where the traveller is carried on a booked service: rail, ferry, bus,
+or a pre-arranged airport transfer. Carries service number, coach and seat,
+platform or pickup point. Split from Car on who drives, not on what the vehicle
+is.
+_Avoid_: Rail, ground transport, transfer
+
 ## Terms deliberately not used
 
 **Reservation** is the ordinary English word for any Booking, so it cannot also
@@ -66,3 +93,6 @@ Booking.
 
 **Event** on its own is ambiguous between a Segment and a TimelineEvent. Always
 say which.
+
+**Rail** is too narrow: it excluded ferries, buses and booked airport transfers,
+which had nowhere to live. Use Transit.
