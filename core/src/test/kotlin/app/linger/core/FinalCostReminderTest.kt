@@ -45,7 +45,7 @@ class FinalCostReminderTest {
         // offset, so it is the first one that would be wrong if the zone came
         // from the phone. Asked at 10:00 wherever the car was returned.
         val sixt = rental(
-            money = Money(amount = "267.45", currency = "USD", vendorLabel = "Estimated rental cost"),
+            money = Money.of("267.45", "USD", vendorLabel = "Estimated rental cost"),
             code = "9739400602",
             issuer = "Sixt",
         )
@@ -63,7 +63,7 @@ class FinalCostReminderTest {
         // second-guessed by a notification, and asking anyway would train the
         // traveller to ignore the one time it matters.
         val alamo = rental(
-            money = Money(amount = "265.57", currency = "USD", vendorLabel = "Total Cost"),
+            money = Money.of("265.57", "USD", vendorLabel = "Total Cost"),
             code = "721303130",
             issuer = "Alamo",
         )
