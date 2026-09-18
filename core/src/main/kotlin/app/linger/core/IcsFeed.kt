@@ -18,6 +18,7 @@ import kotlin.time.Duration.Companion.minutes
 object IcsFeed {
 
     private const val CRLF = "\r\n"
+    private const val FOLD_AT = 75
     private val MOMENT_BLOCK = 30.minutes
 
     fun forTrip(trip: Trip, generatedAt: Instant): String {
@@ -34,7 +35,37 @@ object IcsFeed {
             booking.timeline().forEach { event -> lines += vevent(booking, event, generatedAt) }
         }
         lines += "END:VCALENDAR"
-        return lines.joinToString(separator = CRLF, postfix = CRLF)
+        return lines.joinToString(separator = CRLF, postfix = CRLF) { fold(it) }
+    }
+
+    /**
+     * Breaks a line that runs past 75 octets, continuing it with one space.
+     *
+     * RFC 5545 is not advisory about the limit, and the samples are already
+     * close: Booking.com writes the Alamo branch as "CARTAGENA RAFAEL NUNEZ
+     * INTL AIRPORT, LOCAL 01-08, Cartagena, Colombia, 130002".
+     *
+     * Octets rather than characters, and never inside one. An accented branch
+     * name costs two bytes a letter, so a character count folds too late and a
+     * split through the middle of a letter produces a byte sequence that is not
+     * text at all.
+     */
+    private fun fold(line: String): String {
+        if (line.encodeToByteArray().size <= FOLD_AT) return line
+        val folded = StringBuilder()
+        var used = 0
+        line.forEach { character ->
+            val width = character.toString().encodeToByteArray().size
+            // One octet of the budget goes on the leading space of a
+            // continuation, so a continued line is 74 of content at most.
+            if (used + width > FOLD_AT) {
+                folded.append(CRLF).append(' ')
+                used = 1
+            }
+            folded.append(character)
+            used += width
+        }
+        return folded.toString()
     }
 
     /**
