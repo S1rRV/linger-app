@@ -29,6 +29,29 @@ if the field moves, so does the reminder.
 | Trip | Visa and passport check | Departure date | T-30 d and T-7 d | Push | Passport expiry inside destination rules | The six-month rule, per destination |
 | Trip | Post-trip receipts | Return date | T+1 d, 10:00 | Push | Any expense parsed | Opens the wrap-up screen |
 
+## What phase 0 computes
+
+Five of the twenty-two. The rest are not deferred for being hard: they need live
+traffic, an airline feed or check-in state, and none of those exists yet.
+
+| Rule | Built as |
+| --- | --- |
+| Car pickup | An hour before an attended Segment start |
+| Car return | Three hours before an attended Segment end |
+| Car confirm final cost | 10:00 the day after, in the Place the car went back to, when the vendor's own label hedged the figure |
+| Flight check-in opens | T-24h, standing in for the airline's window until something fetches one |
+| Never in the past | Dropped per reminder, not per Booking, so an email forwarded mid-trip keeps the return warning |
+
+**The two car rules are one rule about Segments.** Pickup and return are an
+attended start and an attended end, which is the same flag the timeline splits
+on, so the engine carries no switch on booking kind. A ferry with a vehicle deck
+would need no new branch.
+
+**A hedged price is read off the vendor's label.** Sixt writes "Estimated rental
+cost" and Alamo writes "Total Cost". A word match is crude and it is the only
+signal there is; treating every rental as provisional would ask about prices no
+vendor ever intended to change.
+
 ## Scheduling mechanics
 
 **Anchored, not absolute.** Every reminder stores an offset against a booking

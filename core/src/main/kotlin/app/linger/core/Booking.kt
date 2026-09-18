@@ -24,6 +24,13 @@ data class Booking(
      * person is a different problem from telling two Bookings apart.
      */
     val travellers: Set<Traveller> = emptySet(),
+    /**
+     * What the confirmation said it cost, if it said.
+     *
+     * Nullable because a record can arrive without one: an operator's own
+     * confirmation for flights a seller was paid for often states no price.
+     */
+    val money: Money? = null,
 ) {
     /**
      * Whether something taken out here has to be given back somewhere else.
