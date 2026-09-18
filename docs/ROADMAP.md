@@ -3,37 +3,68 @@
 Sequenced so that each phase is usable on its own and the riskiest dependency,
 mailbox access, is never on the critical path.
 
-## Phase 0. Prove the spine (2 weeks)
+## Phase 0. Prove the spine, on real documents
 
-- Trip, Booking, TimelineEvent, Reminder tables
-- Manual entry for all seven categories
+Android only, per [ADR-0002](adr/0002-android-first.md).
+
+Three booking kinds: **flights, stays, car**. Not seven. They are enough to
+exercise everything risky (time zones, a multi-Segment booking, a deadline
+reminder) and the remaining kinds are the same shape underneath.
+
+- Trip, Booking, Segment, TimelineEvent, Reminder tables
+  (see [ADR-0001](adr/0001-bookings-split-into-segments.md))
 - Day timeline and trip home
-- Local notifications from the rule matrix
+- Local notifications, per the [reminder rules](REMINDERS.md)
 - Per-trip ICS feed
 
-No parsing at all. If the model is wrong, everything after this is wasted.
+**Intake is upload and scan, not typing.** Share a PDF or an email into the app,
+or photograph a paper voucher. No manual-entry screen ships to users.
 
-Storyboard frames: D1, D2, D4, J1, J2.
+### Why the original plan changed
 
-## Phase 1. MVP, the inbox trick (6 to 8 weeks)
+Phase 0 was written as manual entry with no parsing, so that a wrong model would
+be discovered before any parser work was wasted. That is no longer the plan: the
+author is planning a real trip now and has real confirmations to feed it, and an
+app that requires typing would not get used, so it would not get tested.
+
+The cost is that two unproven things now ship together, the model and the
+parser. When a booking comes out wrong, the cause is ambiguous.
+
+Mitigation, and it is not optional: **keep a manual-entry path as a developer
+tool**, reachable from a debug menu and never shown to users. It costs almost
+nothing and it is the only way to test the timeline and reminders when the
+parser is the thing that is broken. Without it, every model bug looks like a
+parser bug.
+
+### Done means
+
+One real trip of the author's, added entirely by upload and scan, where every
+reminder fires at the correct local time with the phone in aeroplane mode.
+
+That is the whole bet. The aeroplane-mode clause is the point: it is what
+separates this from a calendar.
+
+Storyboard frames: C1, C3, D1, D2, D4, E1, F1, G1, J1, J2.
+
+## Phase 1. Widen the intake (6 to 8 weeks)
 
 - Forwarding alias with inbound SMTP
 - 15 vendor templates: 6 airlines, 5 hotel groups, Airbnb, 3 OTAs
 - Schema-constrained model fallback with per-field confidence
 - Review queue and the confirm screen
-- Flights and stays end to end, including wifi and door codes
+- Stays end to end, including wifi and door codes
 - Pass storage from `.pkpass` and PDF barcodes
 - Offline trip pack
 
 Alias before OAuth: it ships without a Google review cycle and proves the value
 on its own.
 
-Storyboard frames: A2, C1, C2, C3, E1, E3, F1, F2, J3.
+Storyboard frames: A2, C2, C4, E3, F2, F3, G2, J3.
 
 ## Phase 2. Complete the categories (8 weeks)
 
 - Gmail and Microsoft Graph connect, with historical backfill
-- Cars, rail, dining, tickets, insurance
+- Transit, dining, tickets, insurance (car already landed in Phase 0)
 - Change detection and downstream impact
 - Check-in window tracking and airline deep links
 - Wallet passes, live activity on travel day
@@ -86,13 +117,15 @@ Storyboard frames: I1, I2, I3, L1, L2, L3.
 
 These change what gets built, so they are worth answering before Phase 1.
 
-1. **Which platform first, or both?** The offline and Wallet stories differ
-   enough to matter.
+1. ~~Which platform first?~~ **Answered:** Android only.
+   See [ADR-0002](adr/0002-android-first.md).
 2. **Alias-only at launch, or hold for Gmail verification?** Alias ships months
    earlier and needs no review, but mailbox connect is what finds past trips and
-   catches changes without a forward rule.
+   catches changes without a forward rule. Still open, and now a Phase 1
+   question rather than a Phase 0 one, since Phase 0 intake is upload and scan.
 3. **One region first?** Vendor templates and IDP-style derived requirements are
    regional work. India plus Japan plus Europe is a different template set from
    US domestic.
-4. **Is rail a first-class category, or does it live under "other"?** It matters
-   for Japan, India and Europe, and much less for the US.
+4. ~~Is rail a first-class category?~~ **Answered:** transport splits on who
+   drives. Car if you drive it, Transit if you are carried, which covers rail,
+   ferry, bus and booked airport transfers. See `CONTEXT.md`.
