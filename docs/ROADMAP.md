@@ -112,6 +112,30 @@ that no feature consumes is liability with no upside. When a feature needs one,
 it arrives with the rule already written: typed on the device, never parsed from
 an email, never sent to the server, never in a cloud backup.
 
+### Change and cancellation: in and out
+
+| In build one | Out of build one |
+| --- | --- |
+| Recognising an amendment and applying it | Noticing a change you have not uploaded |
+| Showing what moved, old version one tap away | |
+| Cancelled bookings kept, struck through, reminders voided | |
+| Prompting for a missing required field | |
+| Fare rules shown: changeable, refundable | |
+
+**The app only knows what it has been shown.** Build one has no mailbox
+watching, so an amendment arrives only if you upload it. Say so plainly on
+screen, in the same spirit as the offline screen: an app that silently shows
+stale times is worse than one that admits what it has not seen.
+
+**Cancelled is not deleted.** The Booking stays visible and struck through, its
+reminders voided. A refund can be outstanding for weeks, and a trip that quietly
+loses a row is worse than one showing a cancelled booking.
+
+**Prompting is not manual entry.** "No typing in" rules out a screen for
+building a Booking from nothing. Asking for one named field that a parsed
+Booking is missing is a different act, and it is the only way an amendment that
+arrives before its original can become usable.
+
 ### Done means
 
 One real trip of the author's, added entirely by upload and scan, where every

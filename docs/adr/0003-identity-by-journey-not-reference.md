@@ -1,13 +1,21 @@
-# A Booking is identified by its journey, not by its reference
+# A Booking is identified by its journey or its reference, never by reference alone
 
-Two bookings are the same booking when they describe the same journey: for each
-Segment, the same `(operator, service number, local date, traveller)`. The
-confirmation code is stored and displayed but is not the identity.
+Two records describe the same Booking when **either** of these holds:
 
-This is worth recording because deduplicating on the reference number is the
-obvious thing to do, and it is wrong.
+1. **Same Seller and same Reference.** Sixt reservation `9739400602` is the same
+   Booking whatever it now says.
+2. **Same journey.** Per Segment, the same
+   `(operator, start place, start local date, traveller)`, plus the service
+   number as a tiebreaker where one exists.
 
-## Why the obvious approach fails
+The first record seen becomes the primary. Later records fill fields that are
+empty and never overwrite fields that are already set.
+
+The filename says "not by reference", which was the original title. It is kept so
+existing links still resolve. The amendment below explains why reference alone is
+wrong and reference plus journey is right.
+
+## Why reference alone fails
 
 The sample set in `docs/samples/` has the same four flights arriving under two
 different references. Expedia calls the booking `73545609581279`; Arajet calls it
@@ -19,22 +27,48 @@ flight against its own duplicate.
 The same split appears on the car side: Booking.com issues `721303130` for a
 rental that Alamo holds under its own number.
 
+## Why journey alone fails
+
+Found while grilling change and cancellation, after the original decision was
+committed. Journey matching has two holes, and both sit inside build one.
+
+**Cars have no service number.** Neither Sixt nor Alamo has an equivalent of a
+flight number, so the key as first written did not apply to half of build one.
+This is why the key now says `start place` rather than `service number`, with the
+service number demoted to a tiebreaker: every Segment has a start place and a
+start date, only some have a service number.
+
+**A change moves the date, which moves the key.** If Sixt reschedules the pickup
+from 28 December to 27 December, the journey key no longer matches, so a pure
+journey match creates a second Booking rather than amending the first. That is
+precisely the duplicate this decision exists to prevent. Reference matching
+catches it, because Sixt keeps reservation `9739400602` across the change.
+
+Neither rule is sufficient alone. Reference catches the amendment; journey
+catches the cross-seller duplicate.
+
 ## Consequences
 
-A Booking carries a set of references, not one. Each is labelled with who issued
+A Booking carries a set of References, not one. Each is labelled with who issued
 it, so the traveller can quote whichever the person on the phone asks for.
 
-Merging is not free. Two records that match on journey must be reconciled, and
-they will disagree: the seller's email and the operator's email carry different
-fare detail, different wording, sometimes different terminal information. Later
-arrival wins per field only where the earlier record had nothing, so a silent
-merge never destroys a value that was already there.
+**First record wins.** Whatever arrives first is the primary, and later arrivals
+fill only what is missing. This matters because an amendment is usually partial:
+Sixt's "your booking has moved" states the new date and may say nothing about the
+vehicle, the price or the insurance. Without this rule a later, thinner record
+would hollow out a complete one.
+
+**A gap is asked about, not guessed.** When the primary record lacks something a
+Booking cannot work without, the traveller is prompted for that field and only
+that field. This is not a retreat from "no typing in", which rules out a
+manual-entry screen for creating a Booking from nothing. Filling one named gap in
+a parsed Booking is a different act.
 
 Content matching can produce false positives, which reference matching cannot.
 Two travellers on genuinely separate bookings for the same flight are
 distinguished by the traveller in the key, which is why the traveller is part of
-it rather than just the flight.
+it rather than just the journey.
 
-`local date` rather than an instant, because the same flight number on the same
+`local date` rather than an instant, because the same service on the same
 calendar day is one service even when a delay pushes the actual departure past
 midnight.

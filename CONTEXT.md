@@ -138,6 +138,12 @@ beside its reservation number. Never shown on a summary and never exported to a
 calendar, since a calendar entry can surface on a shared or work screen.
 _Avoid_: Code, PIN, password, token
 
+**Amendment**:
+A later record that changes a Booking already held, rather than describing a new
+one. Usually partial: it states what moved and stays silent on everything else,
+which is why the first record stays primary and an Amendment only fills gaps.
+_Avoid_: Change, update, revision
+
 ## Terms deliberately not used
 
 **Reservation** is the ordinary English word for any Booking, so it cannot also

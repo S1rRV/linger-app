@@ -89,8 +89,14 @@ and why a rebooking supersedes rather than duplicates.
 
 - Find the trip by date-range plus geography overlap
 - No trip: create one, named from the destination
-- Upsert by the journey itself: per Segment, `(operator, service number, local
-  date, traveller)`. Not by the reference, which differs per seller.
+- Upsert on either match: same Seller and Reference, or same journey per Segment
+  `(operator, start place, start local date, traveller)` with the service number
+  as a tiebreaker. Reference catches an amendment; journey catches a duplicate
+  from a second seller
+- First record seen is primary. Later records fill empty fields only, never
+  overwrite
+- A field the Booking cannot work without, still missing after the merge, is
+  asked about rather than guessed
 - Revisions are versioned v1, v2, v3; nothing is overwritten
 - Cross-booking conflict scan (buffers, overlaps, impossible sequences)
 

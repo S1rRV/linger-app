@@ -12,12 +12,13 @@ export.
 2. **Derived is disposable.** Events, reminders, calendar rows, pins and passes
    are regenerated from bookings. Nothing downstream is hand-edited without being
    marked, and marked things survive regeneration.
-3. **Identity is the journey, not the reference.** Two sellers give different
-   references for the same flights, so a Booking is identified by what it
-   actually is: for each Segment, `(operator, service number, local date,
-   traveller)`. Forward the same email three times and you get one Booking;
-   receive it from Expedia and from the airline and you still get one Booking,
-   carrying both references. See
+3. **Identity is the reference or the journey, never reference alone.** Same
+   Seller and same Reference is one Booking; so is the same journey, per Segment
+   `(operator, start place, start local date, traveller)` with the service number
+   as a tiebreaker. Reference catches an amendment that moved the date; journey
+   catches the same flights arriving from two sellers. **The first record seen is
+   primary**: later records fill empty fields and never overwrite set ones, and a
+   field a Booking cannot work without is asked about rather than guessed. See
    [ADR-0003](adr/0003-identity-by-journey-not-reference.md).
 4. **Versions, not overwrites.** A change email writes v2 and points v1 at it.
    Undo is walking back one version.
@@ -124,6 +125,14 @@ is left to the traveller: see the note under Car in `CONTEXT.md`.
 `party_size`, `window` (start, latest entry), `dress_or_practical_notes`,
 `cancellation` (deadline, fee), `tickets[]` (per-person number plus
 PassArtifact).
+
+### Fare rules, on any Booking
+
+`changeable` / `refundable` (tri-state: yes, no, unstated) and
+`free_cancellation_until`. Both flight confirmations in `docs/samples/` say
+"Change not allowed" and "Non Refundable", which is exactly what a traveller
+wants to know before spending twenty minutes on hold. Unstated is a third value
+and not a synonym for no: saying nothing is different from saying no.
 
 ## Derived layer
 
