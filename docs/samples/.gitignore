@@ -1,0 +1,9 @@
+# Real booking documents. Never committed.
+# They carry full names, email addresses, booking references, ticket numbers
+# and a reservation security code. Keep them local; commit only redacted
+# fixtures, and put those in docs/samples/fixtures/ which is not ignored.
+*
+!.gitignore
+!README.md
+!fixtures/
+!fixtures/**
