@@ -18,6 +18,7 @@ object Airports {
 
     private val byCode: Map<String, Place> = listOf(
         Place("EWR", "Newark Liberty International", TimeZone.of("America/New_York")),
+        Place("SDQ", "Las Americas International", TimeZone.of("America/Santo_Domingo")),
     ).associateBy { it.code }
 
     fun find(code: String): Place? = byCode[code.trim().uppercase()]
