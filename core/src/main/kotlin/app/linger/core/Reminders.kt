@@ -60,7 +60,7 @@ object Reminders {
      * so it is the first that would be wrong in a different country.
      */
     private fun confirmFinalCost(booking: Booking, segment: Segment): Reminder? {
-        if (booking.money?.isAnEstimate != true) return null
+        if (booking.money?.vendorHedgedIt != true) return null
         val dayAfter = segment.endsAt.toLocalDateTime(segment.to.zone).date.plus(1, DateTimeUnit.DAY)
         return Reminder(
             rule = ReminderRule.CONFIRM_FINAL_COST,
