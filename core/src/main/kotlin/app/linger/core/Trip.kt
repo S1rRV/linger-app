@@ -78,6 +78,44 @@ data class Trip(
             }
         }
 
+    /**
+     * What this Trip cost, in [homeCurrency].
+     *
+     * The subtotals always stand, because they are what vendors charged and
+     * involve no arithmetic anyone can argue with. The combined figure is
+     * withheld entirely when anything is unpriced or unconverted, rather than
+     * quietly leaving that booking out: a total missing a booking is worse than
+     * no total, because it looks complete.
+     */
+    fun totals(homeCurrency: String): TripTotals {
+        val home = homeCurrency.trim().uppercase()
+        val priced = bookings.mapNotNull { it.money }
+
+        val perCurrency = priced
+            .groupBy { it.currency }
+            .mapValues { (_, amounts) -> amounts.sumOf { it.minorUnits } }
+
+        // What each Booking contributes to one figure: itself when it is
+        // already in the home currency, otherwise whatever its conversion says.
+        val contributions = priced.map { money ->
+            when {
+                money.currency == home -> Conversion.Stated(money.minorUnits, home)
+                else -> money.converted
+            }
+        }
+        val everythingCounted = bookings.size == priced.size && contributions.none { it == null }
+
+        return TripTotals(
+            perCurrency = perCurrency,
+            combined = if (!everythingCounted) null else TripTotals.Combined(
+                minorUnits = contributions.filterNotNull().sumOf { it.minorUnits },
+                currency = home,
+                isAGuess = contributions.any { it is Conversion.Estimated },
+            ),
+            bookingsWithNoPrice = bookings.size - priced.size,
+        )
+    }
+
     private data class Stop(val place: Place, val at: Instant, val isDestination: Boolean)
 
     /**
