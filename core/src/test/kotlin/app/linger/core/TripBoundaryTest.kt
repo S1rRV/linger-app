@@ -137,4 +137,37 @@ class TripBoundaryTest {
         assertEquals(1, trips.size)
         assertEquals(4, trips.single().bookings.size)
     }
+
+    @Test
+    fun `a booking that never leaves home makes no trip`() {
+        // DATA-MODEL.md: a restaurant in your own city is not the start of a
+        // holiday. Phase 0 has no dining bookings, so this is a car hired at
+        // home for the weekend, collected and returned at Newark.
+        val hertzNewark = Place(
+            code = "Hertz Newark Airport",
+            name = "Hertz Newark Airport",
+            zone = assertNotNull(Airports.find("EWR")).zone,
+        )
+        val weekendCar = Booking(
+            segments = listOf(
+                Segment.held(
+                    from = hertzNewark,
+                    collectedAt = LocalDateTime(2027, 2, 6, 9, 0),
+                    returnedAt = LocalDateTime(2027, 2, 8, 9, 0),
+                ),
+            ),
+        )
+
+        // On its own it is not a trip at all.
+        assertEquals(emptyList(), Trips.group(listOf(weekendCar), home = Home(hertzNewark)))
+
+        // And it does not attach itself to a real one either. Grouped with the
+        // sample flights under a Home that covers both the branch and the
+        // airport, the Trip is still only the flying.
+        val newYorkWithBranch = Home(assertNotNull(Airports.find("EWR")), hertzNewark)
+        val trips = Trips.group(listOf(arajet(), weekendCar), home = newYorkWithBranch)
+
+        assertEquals(1, trips.size)
+        assertEquals(listOf(arajet()), trips.single().bookings)
+    }
 }

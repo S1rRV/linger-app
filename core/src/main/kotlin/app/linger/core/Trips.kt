@@ -15,6 +15,7 @@ object Trips {
         // knowing which Booking it came from. Sorting by Booking would not do:
         // a car collected on the 24th sits inside a flight bought in November.
         val steps = bookings
+            .filterNot { it.isEntirelyAtHome(home) }
             .flatMap { booking -> booking.segments.map { segment -> booking to segment } }
             .sortedBy { (_, segment) -> segment.startsAt }
 
@@ -41,4 +42,14 @@ object Trips {
         if (current.isNotEmpty()) trips += current
         return trips.map { Trip(bookings = it, home = home) }
     }
+
+    /**
+     * Whether this Booking never takes the traveller away from Home.
+     *
+     * Dropped before grouping rather than after, per DATA-MODEL.md: a
+     * restaurant in your own city is not the start of a holiday, and it should
+     * not attach itself to somebody else's trip either.
+     */
+    private fun Booking.isEntirelyAtHome(home: Home): Boolean =
+        segments.all { it.from in home && it.to in home }
 }
