@@ -4,7 +4,9 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 /**
  * Seam 2, the car half: one Segment, two TimelineEvents.
@@ -90,5 +92,63 @@ class CarTimelineTest {
         )
 
         assertEquals(1, booking.timeline().size)
+    }
+
+    @Test
+    fun `a one-way rental returns at the drop-off, not where it was collected`() {
+        // No sample does this: both cars in docs/samples/ come back to the
+        // branch they left. The case is written from the product rule, because
+        // getting it wrong sends the traveller 1,100 km to the wrong counter,
+        // and the timeline is the only thing the UI renders.
+        val poblado = branch("Sixt Medellin City El Poblado")
+        val cartagena = branch("Sixt Cartagena Airport")
+        val rental = Segment.held(
+            from = poblado,
+            collectedAt = LocalDateTime(2026, 12, 24, 12, 0),
+            to = cartagena,
+            returnedAt = LocalDateTime(2026, 12, 28, 12, 0),
+        )
+        val booking = Booking(segments = listOf(rental))
+
+        val timeline = booking.timeline()
+
+        assertEquals(listOf(poblado, cartagena), timeline.map { it.place })
+        // And the Booking says so out loud, so the return can be shown
+        // differently from an ordinary one.
+        assertTrue(booking.hasOneWayHandback)
+    }
+
+    @Test
+    fun `a rental back to its own branch is not a one-way handback`() {
+        val poblado = branch("Sixt Medellin City El Poblado")
+        val booking = Booking(
+            segments = listOf(
+                Segment.held(
+                    from = poblado,
+                    collectedAt = LocalDateTime(2026, 12, 24, 12, 0),
+                    returnedAt = LocalDateTime(2026, 12, 28, 12, 0),
+                ),
+            ),
+        )
+
+        assertFalse(booking.hasOneWayHandback)
+    }
+
+    @Test
+    fun `a flight is never a one-way handback, however far apart its ends are`() {
+        // from and to differ on every flight leg ever booked. The caveat is
+        // about an appointment owed somewhere new, not about going somewhere.
+        val booking = Booking(
+            segments = listOf(
+                Segment.between(
+                    from = assertNotNull(Airports.find("EWR")),
+                    departingAt = LocalDateTime(2026, 12, 23, 23, 59),
+                    to = assertNotNull(Airports.find("SDQ")),
+                    arrivingAt = LocalDateTime(2026, 12, 24, 5, 25),
+                ),
+            ),
+        )
+
+        assertFalse(booking.hasOneWayHandback)
     }
 }

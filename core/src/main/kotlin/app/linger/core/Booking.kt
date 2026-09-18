@@ -10,6 +10,17 @@ data class Booking(
     val segments: List<Segment>,
 ) {
     /**
+     * Whether something taken out here has to be given back somewhere else.
+     *
+     * A one-way rental is the caveat worth saying out loud: the traveller
+     * collects in Medellin and owes a counter visit in Cartagena, at a Place
+     * they have not seen, 1,100 km from where they picked the car up. Every
+     * flight leg starts and ends in different Places and none of them is this,
+     * which is why it reads the appointment and not the two Places alone.
+     */
+    val hasOneWayHandback: Boolean get() = segments.any { it.endIsElsewhere }
+
+    /**
      * Projects this Booking onto the timeline, earliest first.
      *
      * DATA-MODEL.md invariant 1: one multi-leg flight is four events, one car
