@@ -13,10 +13,16 @@ import kotlin.time.Duration.Companion.hours
  */
 object Reminders {
 
-    private val COUNTER_WARNING = 1.hours
+    private val BEFORE_COLLECTING = 1.hours
+    private val BEFORE_GIVING_BACK = 3.hours
 
     fun forBooking(booking: Booking, now: Instant): List<Reminder> =
         booking.segments
             .filter { it.endMustBeAttended }
-            .map { Reminder(rule = ReminderRule.PICKUP, firesAt = it.startsAt - COUNTER_WARNING) }
+            .flatMap { segment ->
+                listOf(
+                    Reminder(ReminderRule.PICKUP, segment.startsAt - BEFORE_COLLECTING),
+                    Reminder(ReminderRule.RETURN, segment.endsAt - BEFORE_GIVING_BACK),
+                )
+            }
 }

@@ -24,4 +24,12 @@ data class Reminder(
 enum class ReminderRule {
     /** An hour before an attended start: the rental counter is expecting you. */
     PICKUP,
+
+    /**
+     * Three hours before an attended end.
+     *
+     * Longer than the pickup warning because giving a car back is not turning
+     * up. It is fuel, a detour to the branch, and a queue.
+     */
+    RETURN,
 }

@@ -5,6 +5,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 /**
  * Seam 5: what the phone should buzz about, and when.
@@ -50,5 +51,38 @@ class CarReminderTest {
 
         val pickup = reminders.single { it.rule == ReminderRule.PICKUP }
         assertEquals(Instant.parse("2026-12-24T16:00:00Z"), pickup.firesAt)
+    }
+
+    @Test
+    fun `three hours before you have to give the car back`() {
+        // Return is 12:00 on 28 December, so 17:00Z, and the warning is at
+        // 14:00Z. Three hours rather than one because handing a car back is not
+        // turning up: it is fuel, a detour to the branch, and a queue.
+        val reminders = Reminders.forBooking(sixt(), now = wellBefore)
+
+        val ret = reminders.single { it.rule == ReminderRule.RETURN }
+        assertEquals(Instant.parse("2026-12-28T14:00:00Z"), ret.firesAt)
+    }
+
+    @Test
+    fun `a flight asks for neither, because nobody is waiting at a counter`() {
+        // The rules are about attended ends, not about cars. A flight leg has
+        // neither, so it produces neither, and the engine needed no opinion
+        // about booking kinds to get there.
+        val flight = Booking(
+            segments = listOf(
+                Segment.between(
+                    from = assertNotNull(Airports.find("MDE")),
+                    departingAt = LocalDateTime(2026, 12, 28, 5, 0),
+                    to = assertNotNull(Airports.find("CTG")),
+                    arrivingAt = LocalDateTime(2026, 12, 28, 6, 14),
+                    operator = "JetSMART",
+                ),
+            ),
+        )
+
+        val reminders = Reminders.forBooking(flight, now = wellBefore)
+
+        assertTrue(reminders.none { it.rule == ReminderRule.PICKUP || it.rule == ReminderRule.RETURN })
     }
 }
