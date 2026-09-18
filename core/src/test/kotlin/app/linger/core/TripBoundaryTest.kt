@@ -80,4 +80,61 @@ class TripBoundaryTest {
 
         assertEquals(1, trips.size)
     }
+
+    @Test
+    fun `the whole sample itinerary is one trip`() {
+        // Everything in docs/samples/, which is the case ADR-0005 was written
+        // to get right. Four bookings, three vendors, two cities 1,100 km
+        // apart, twelve days. The old geography rule had no answer for it.
+        //
+        //   Arajet    EWR -> SDQ -> MDE, 23 Dec, and back 3 Jan via PUJ
+        //   Sixt      Medellin El Poblado, 24 to 28 Dec
+        //   JetSMART  MDE -> CTG 28 Dec, CTG -> MDE 3 Jan
+        //   Alamo     Cartagena airport, 29 Dec to 3 Jan
+        //
+        // Newark is touched exactly twice, at each end, which is what makes
+        // this one trip and not four.
+        val poblado = Place(
+            code = "Sixt Medellin City El Poblado",
+            name = "Sixt Medellin City El Poblado",
+            zone = assertNotNull(Countries.soleZoneOf("CO")),
+        )
+        val cartagenaAirport = Place(
+            code = "Alamo Cartagena Airport",
+            name = "Alamo Cartagena Airport",
+            zone = assertNotNull(Countries.soleZoneOf("CO")),
+        )
+
+        val sixt = Booking(
+            segments = listOf(
+                Segment.held(
+                    from = poblado,
+                    collectedAt = LocalDateTime(2026, 12, 24, 12, 0),
+                    returnedAt = LocalDateTime(2026, 12, 28, 12, 0),
+                ),
+            ),
+        )
+        val jetsmart = Booking(
+            segments = listOf(
+                leg("MDE", LocalDateTime(2026, 12, 28, 5, 0), "CTG", LocalDateTime(2026, 12, 28, 6, 14)),
+                leg("CTG", LocalDateTime(2027, 1, 3, 7, 50), "MDE", LocalDateTime(2027, 1, 3, 9, 9)),
+            ),
+        )
+        val alamo = Booking(
+            segments = listOf(
+                Segment.held(
+                    from = cartagenaAirport,
+                    collectedAt = LocalDateTime(2026, 12, 29, 12, 0),
+                    returnedAt = LocalDateTime(2027, 1, 3, 12, 0),
+                ),
+            ),
+        )
+
+        // Handed over in the order the confirmations arrived, which is not the
+        // order they happen in.
+        val trips = Trips.group(listOf(jetsmart, arajet(), alamo, sixt), home = newYork)
+
+        assertEquals(1, trips.size)
+        assertEquals(4, trips.single().bookings.size)
+    }
 }

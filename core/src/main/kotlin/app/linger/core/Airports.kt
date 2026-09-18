@@ -22,6 +22,7 @@ object Airports {
         Place("LGA", "LaGuardia", TimeZone.of("America/New_York")),
         Place("SDQ", "Las Americas International", TimeZone.of("America/Santo_Domingo")),
         Place("MDE", "Jose Maria Cordova International", TimeZone.of("America/Bogota")),
+        Place("CTG", "Rafael Nunez International", TimeZone.of("America/Bogota")),
         Place("PUJ", "Punta Cana International", TimeZone.of("America/Santo_Domingo")),
         Place("LGW", "London Gatwick", TimeZone.of("Europe/London")),
     ).associateBy { it.code }
