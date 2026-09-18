@@ -40,4 +40,13 @@ enum class ReminderRule {
      * breakfast rather than at whatever hour the return happened to be.
      */
     CONFIRM_FINAL_COST,
+
+    /**
+     * A day before a flight leaves, so a seat can still be had.
+     *
+     * T-24h is a fallback rather than the truth. REMINDERS.md anchors this to
+     * the airline's own window, and nothing fetches airline schedules yet, so
+     * the usual window stands in until something does.
+     */
+    CHECK_IN_OPENS,
 }

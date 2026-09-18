@@ -22,23 +22,31 @@ object Reminders {
     private val MORNING = LocalTime(hour = 10, minute = 0)
     private val BEFORE_COLLECTING = 1.hours
     private val BEFORE_GIVING_BACK = 3.hours
+    private val CHECK_IN_WINDOW = 24.hours
 
     fun forBooking(booking: Booking, now: Instant): List<Reminder> =
         booking.segments
-            .filter { it.endMustBeAttended }
-            .flatMap { segment ->
-                listOfNotNull(
-                    Reminder(ReminderRule.PICKUP, segment.startsAt - BEFORE_COLLECTING),
-                    Reminder(ReminderRule.RETURN, segment.endsAt - BEFORE_GIVING_BACK),
-                    confirmFinalCost(booking, segment),
-                )
-            }
+            .flatMap { segment -> forSegment(booking, segment) }
             // Never in the past, and silently. Forwarding an old confirmation
             // should not buzz about a car collected last Christmas, and firing
             // late is worse than not firing: it teaches the traveller that the
             // notifications are noise. The fact stays on the Booking, so a
             // screen can still say what happened; only the buzz is dropped.
             .filter { it.firesAt > now }
+
+    private fun forSegment(booking: Booking, segment: Segment): List<Reminder> =
+        if (segment.endMustBeAttended) {
+            listOfNotNull(
+                Reminder(ReminderRule.PICKUP, segment.startsAt - BEFORE_COLLECTING),
+                Reminder(ReminderRule.RETURN, segment.endsAt - BEFORE_GIVING_BACK),
+                confirmFinalCost(booking, segment),
+            )
+        } else {
+            // Nobody is waiting at a counter, so the obligation is the flight
+            // itself and the only thing phase 0 can say about it is when
+            // check-in usually opens.
+            listOf(Reminder(ReminderRule.CHECK_IN_OPENS, segment.startsAt - CHECK_IN_WINDOW))
+        }
 
     /**
      * Asks, the morning after, whether a hedged price moved.
