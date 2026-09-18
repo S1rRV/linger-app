@@ -23,6 +23,7 @@ object Airports {
         Place("SDQ", "Las Americas International", TimeZone.of("America/Santo_Domingo")),
         Place("MDE", "Jose Maria Cordova International", TimeZone.of("America/Bogota")),
         Place("PUJ", "Punta Cana International", TimeZone.of("America/Santo_Domingo")),
+        Place("LGW", "London Gatwick", TimeZone.of("Europe/London")),
     ).associateBy { it.code }
 
     fun find(code: String): Place? = byCode[code.trim().uppercase()]

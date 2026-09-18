@@ -25,10 +25,14 @@ object Trips {
             if (booking !in current) current += booking
 
             val next = steps.getOrNull(index + 1)
-            // Where the traveller is standing once this Segment is over. If
-            // that is Home and something else follows, the Trip ended here.
+            // Where the traveller is standing once this Segment is over.
             val cameHome = segment.to in home
-            if (cameHome && next != null) {
+            // Touching Home inside one purchase is a connection, not a
+            // homecoming: two hours in Terminal C on a single ticket is not
+            // going home, whatever the airport code says. Reading the Booking
+            // settles it without the time threshold ADR-0005 refuses to have.
+            val somethingElseFollows = next != null && next.first != booking
+            if (cameHome && somethingElseFollows) {
                 trips += current
                 current = mutableListOf()
             }
