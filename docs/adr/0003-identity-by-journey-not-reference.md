@@ -72,3 +72,24 @@ it rather than just the journey.
 `local date` rather than an instant, because the same service on the same
 calendar day is one service even when a delay pushes the actual departure past
 midnight.
+
+## Amended while building seam 3
+
+**The journey key holds the start and not the end.** Two sellers quoting one
+flight disagree about the arrival time often enough, and a flight is the same
+flight whatever time it is currently believed to land. Putting the arrival in
+the key turns every such disagreement into a duplicate, which is the failure
+this decision exists to prevent.
+
+**The service number is consulted only when both records state one.** "A
+tiebreaker" left this open. A seller that omits the flight number must not block
+a match it would otherwise make, and no car confirmation states anything of the
+kind, so a tiebreaker that votes when only one side has an opinion would exclude
+half of phase 0.
+
+**A partial record is still an open question.** The rule as built requires the
+two journeys to have the same number of Segments. An operator that emails only
+the outbound half of a return booking therefore does not match the seller's
+record of all four legs, and would land as a second Booking. Whether any single
+matching Segment should be enough is not settled here, because the sample set
+contains no such email and the answer would be invented.
