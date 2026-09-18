@@ -15,6 +15,17 @@ data class Place(
     val code: String,
     val name: String,
     val zone: TimeZone,
+    /**
+     * The town a person would say they were in.
+     *
+     * Separate from [name], which is the airport or the branch. A Trip is named
+     * "Medellin and Cartagena" and never "Jose Maria Cordova International",
+     * and it is what tells an airport and a car branch in the same city that
+     * they are one place.
+     *
+     * Defaults to [name] so a Place nobody has given a town to still answers.
+     */
+    val city: String = name,
 ) {
     /**
      * Turns a bare wall-clock reading at this Place into an instant.

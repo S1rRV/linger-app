@@ -17,14 +17,14 @@ import kotlinx.datetime.TimeZone
 object Airports {
 
     private val byCode: Map<String, Place> = listOf(
-        Place("EWR", "Newark Liberty International", TimeZone.of("America/New_York")),
-        Place("JFK", "John F Kennedy International", TimeZone.of("America/New_York")),
-        Place("LGA", "LaGuardia", TimeZone.of("America/New_York")),
-        Place("SDQ", "Las Americas International", TimeZone.of("America/Santo_Domingo")),
-        Place("MDE", "Jose Maria Cordova International", TimeZone.of("America/Bogota")),
-        Place("CTG", "Rafael Nunez International", TimeZone.of("America/Bogota")),
-        Place("PUJ", "Punta Cana International", TimeZone.of("America/Santo_Domingo")),
-        Place("LGW", "London Gatwick", TimeZone.of("Europe/London")),
+        Place("EWR", "Newark Liberty International", TimeZone.of("America/New_York"), city = "New York"),
+        Place("JFK", "John F Kennedy International", TimeZone.of("America/New_York"), city = "New York"),
+        Place("LGA", "LaGuardia", TimeZone.of("America/New_York"), city = "New York"),
+        Place("SDQ", "Las Americas International", TimeZone.of("America/Santo_Domingo"), city = "Santo Domingo"),
+        Place("MDE", "Jose Maria Cordova International", TimeZone.of("America/Bogota"), city = "Medellin"),
+        Place("CTG", "Rafael Nunez International", TimeZone.of("America/Bogota"), city = "Cartagena"),
+        Place("PUJ", "Punta Cana International", TimeZone.of("America/Santo_Domingo"), city = "Punta Cana"),
+        Place("LGW", "London Gatwick", TimeZone.of("Europe/London"), city = "London"),
     ).associateBy { it.code }
 
     fun find(code: String): Place? = byCode[code.trim().uppercase()]
