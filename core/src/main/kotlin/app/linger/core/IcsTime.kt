@@ -29,6 +29,12 @@ internal object IcsTime {
 
     fun local(instant: Instant, zone: TimeZone): String = basic(instant.toLocalDateTime(zone))
 
+    /** `23:59`, for a human reading the title rather than a parser reading the field. */
+    fun clock(instant: Instant, zone: TimeZone): String {
+        val local = instant.toLocalDateTime(zone)
+        return "${pad(local.hour)}:${pad(local.minute)}"
+    }
+
     /**
      * What a zone is doing over the window, as the sub-components RFC 5545 wants.
      *

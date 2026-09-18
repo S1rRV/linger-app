@@ -3,6 +3,7 @@ package app.linger.core
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * A Trip as an ICS calendar feed.
@@ -17,6 +18,7 @@ import kotlin.time.Duration.Companion.days
 object IcsFeed {
 
     private const val CRLF = "\r\n"
+    private val MOMENT_BLOCK = 30.minutes
 
     fun forTrip(trip: Trip, generatedAt: Instant): String {
         val lines = mutableListOf(
@@ -56,11 +58,97 @@ object IcsFeed {
 
     private fun vevent(booking: Booking, event: TimelineEvent, generatedAt: Instant): List<String> = listOf(
         "BEGIN:VEVENT",
+        "UID:${uid(booking, event)}",
         "DTSTAMP:${IcsTime.utcStamp(generatedAt)}",
         "DTSTART;TZID=${event.startZone.id}:${IcsTime.local(event.startsAt, event.startZone)}",
-        "DTEND;TZID=${event.endZone.id}:${IcsTime.local(event.endsAt, event.endZone)}",
+        "DTEND;TZID=${event.endZone.id}:${IcsTime.local(event.finishesAt, event.endZone)}",
+        "SUMMARY:${escape(summary(event))}",
+        "LOCATION:${escape(event.place.name)}",
         "END:VEVENT",
     )
+
+    /**
+     * When the event finishes, once a moment has been given something to draw.
+     *
+     * The timeline holds a collection and a return as moments, which is the
+     * truth: the traveller is not at the branch for the four days between. A
+     * moment renders as a hairline in a calendar grid, so each gets a readable
+     * block here, at the edge, where it is a rendering decision rather than a
+     * claim about how long a counter takes. Nothing upstream is told.
+     */
+    private val TimelineEvent.finishesAt: Instant
+        get() = if (startsAt == endsAt) startsAt + MOMENT_BLOCK else endsAt
+
+    /**
+     * The one thing that answers "show it in my timezone".
+     *
+     * Calendar clients render every event in the viewer's current zone, and no
+     * property in the format overrides that, whatever TZID suggests. Text is
+     * the only part of an event that survives untouched, so the local reading
+     * goes in the title and reads correctly from anywhere on earth.
+     */
+    private fun summary(event: TimelineEvent): String {
+        val zone = event.startZone
+        val clock = IcsTime.clock(event.startsAt, zone)
+        val where = "$clock ${zoneLabel(zone)} time"
+        val operator = event.segment.operator
+        return when (event.part) {
+            SegmentEnd.START -> "Collect the ${operator ?: ""} car".fix() + ", $where"
+            SegmentEnd.END -> "Return the ${operator ?: ""} car".fix() + ", $where"
+            SegmentEnd.WHOLE -> {
+                val route = "${event.segment.from.code} to ${event.segment.to.code}"
+                val service = event.segment.serviceNumber
+                listOfNotNull(service, route).joinToString(" ") + ", departs $where"
+            }
+        }
+    }
+
+    /** Collapses the gap a missing operator leaves behind. */
+    private fun String.fix(): String = replace("  ", " ")
+
+    /**
+     * The zone named the way a person would say it.
+     *
+     * Read off the zone rather than the Place, because the time really is New
+     * York time even when the airport is in Newark, and a traveller who sees
+     * "Newark time" beside a Bogota reading has to work out whether that is a
+     * different thing.
+     */
+    private fun zoneLabel(zone: TimeZone): String =
+        zone.id.substringAfterLast('/').replace('_', ' ')
+
+    /**
+     * A name for this event that survives being regenerated.
+     *
+     * A feed is fetched over and over, so an id that moved between fetches
+     * would leave the traveller holding every version of every flight they ever
+     * booked. Built from the Booking's Reference, which is the one thing
+     * ADR-0003 says survives an amendment, plus which Segment and which end.
+     */
+    private fun uid(booking: Booking, event: TimelineEvent): String {
+        val reference = booking.references
+            .sortedWith(compareBy({ it.issuer }, { it.code }))
+            .firstOrNull()
+            ?.let { "${it.issuer}-${it.code}" }
+            ?: "${event.segment.from.code}-${event.segment.startLocalDate}"
+        val index = booking.segments.sortedBy { it.startsAt }.indexOfFirst { it === event.segment }
+        return "${slug(reference)}-$index-${event.part.name.lowercase()}@lngr.app"
+    }
+
+    private fun slug(text: String): String =
+        text.lowercase().map { if (it.isLetterOrDigit()) it else '-' }.joinToString("").trim('-')
+
+    /**
+     * RFC 5545 escaping for a TEXT value.
+     *
+     * A comma is a value separator, so an unescaped "Cartagena, Colombia" in a
+     * LOCATION turns one place into two and some parsers give up on the event.
+     */
+    private fun escape(text: String): String = text
+        .replace("\\", "\\\\")
+        .replace(";", "\\;")
+        .replace(",", "\\,")
+        .replace("\n", "\\n")
 
     /** Where the traveller is standing when the event begins. */
     private val TimelineEvent.startZone: TimeZone

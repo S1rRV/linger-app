@@ -6,6 +6,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.days
 
 /**
  * Seam 6: a Trip as a calendar feed.
@@ -92,4 +93,88 @@ class IcsFeedTest {
         val bareNewlines = Regex("(?<!\r)\n").findAll(feed).count()
         assertEquals(0, bareNewlines)
     }
+
+    private fun events(ics: String): List<String> =
+        ics.split("BEGIN:VEVENT").drop(1).map { it.substringBefore("END:VEVENT") }
+
+    @Test
+    fun `collecting and returning a car get half an hour each`() {
+        // The timeline holds these as moments, because the traveller is not at
+        // the branch for the four days between. A moment renders as a hairline
+        // in a calendar grid, so the export gives each end a readable block.
+        //
+        // Half an hour is a rendering decision made here, at the edge, and not
+        // a claim about how long a counter takes. Nothing upstream is told.
+        val ics = IcsFeed.forTrip(trip(), generatedAt = generatedAt)
+        val carEvents = events(ics).filter { it.contains("Sixt") }
+
+        assertEquals(2, carEvents.size)
+        assertTrue(carEvents.any { it.contains("DTSTART;TZID=America/Bogota:20261224T120000") }, ics)
+        assertTrue(carEvents.any { it.contains("DTEND;TZID=America/Bogota:20261224T123000") }, ics)
+        assertTrue(carEvents.any { it.contains("DTSTART;TZID=America/Bogota:20261228T120000") }, ics)
+        assertTrue(carEvents.any { it.contains("DTEND;TZID=America/Bogota:20261228T123000") }, ics)
+    }
+
+    @Test
+    fun `a flight keeps the length it actually is`() {
+        // The block is only for moments. A leg already has a start and an end
+        // worth drawing, and padding it would be inventing a time.
+        val ics = IcsFeed.forTrip(trip(), generatedAt = generatedAt)
+
+        assertTrue(ics.contains("DTSTART;TZID=America/New_York:20261223T235900"), ics)
+        assertTrue(ics.contains("DTEND;TZID=America/Santo_Domingo:20261224T052500"), ics)
+    }
+
+    @Test
+    fun `the title says the local time, because no client will`() {
+        // The thing that actually answers "show it in the traveller's zone".
+        // Calendar apps render every event in the viewer's current zone and no
+        // property in the format overrides that, so the only place a local
+        // reading survives untouched is the text.
+        val ics = IcsFeed.forTrip(trip(), generatedAt = generatedAt)
+
+        assertTrue(ics.contains("SUMMARY:DM 621 EWR to SDQ\\, departs 23:59 New York time"), ics)
+        assertTrue(ics.contains("SUMMARY:Collect the Sixt car\\, 12:00 Bogota time"), ics)
+        assertTrue(ics.contains("SUMMARY:Return the Sixt car\\, 12:00 Bogota time"), ics)
+    }
+
+    @Test
+    fun `the same trip twice gives the same ids`() {
+        // A feed is fetched over and over. An id that changed between fetches
+        // would leave the traveller with a calendar full of every version of
+        // every flight they ever booked.
+        val once = IcsFeed.forTrip(trip(), generatedAt = generatedAt)
+        val again = IcsFeed.forTrip(trip(), generatedAt = generatedAt.plus(7.days))
+
+        assertEquals(uids(once), uids(again))
+        assertEquals(4, uids(once).size)
+    }
+
+    @Test
+    fun `moving a flight keeps its id and changes its time`() {
+        // The other half of the same promise. A rescheduled flight has to
+        // update in place, not arrive alongside the old one.
+        val asBooked = IcsFeed.forTrip(trip(), generatedAt = generatedAt)
+        val moved = Trips.group(
+            listOf(
+                Booking(
+                    references = setOf(Reference(issuer = "Expedia", code = "73545609581279")),
+                    segments = listOf(
+                        leg("EWR", LocalDateTime(2026, 12, 23, 21, 30), "SDQ", LocalDateTime(2026, 12, 24, 2, 56), "DM 621"),
+                        leg("SDQ", LocalDateTime(2026, 12, 24, 7, 50), "MDE", LocalDateTime(2026, 12, 24, 9, 20), "DM 321"),
+                    ),
+                ),
+                sixt(),
+            ),
+            home = newYork,
+        ).single()
+
+        val after = IcsFeed.forTrip(moved, generatedAt = generatedAt)
+
+        assertEquals(uids(asBooked), uids(after))
+        assertTrue(after.contains("DTSTART;TZID=America/New_York:20261223T213000"), after)
+    }
+
+    private fun uids(ics: String): Set<String> =
+        Regex("UID:([^\r\n]+)").findAll(ics).map { it.groupValues[1] }.toSet()
 }
