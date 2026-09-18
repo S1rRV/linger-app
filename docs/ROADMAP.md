@@ -136,6 +136,34 @@ building a Booking from nothing. Asking for one named field that a parsed
 Booking is missing is a different act, and it is the only way an amendment that
 arrives before its original can become usable.
 
+### Money: in and out
+
+| In build one | Out of build one |
+| --- | --- |
+| Amount and currency exactly as stated | Converting a per-Booking amount for display |
+| The vendor's own label kept and shown | Tracking what actually hit the card |
+| Breakdown when given, never computed | Per-line refund rules |
+| A total per currency | Splitting a Booking between travellers |
+| An estimated combined total at the frozen rate | |
+| A post-return prompt when the vendor said "estimated" | |
+
+**The stated amount is the paid amount.** Sixt labels its figure "Estimated
+rental cost" because extras and fuel can move it at return. The app does not
+hedge the number: it shows the figure and the vendor's word for it. What happens
+after the car goes back is settled by one prompt the day after drop-off, asking
+whether the amount changed. Answer it or ignore it.
+
+**Combined totals use a frozen rate**, captured once per Booking and never
+refetched, per [ADR-0004](adr/0004-freeze-the-exchange-rate.md). Individual
+amounts are never converted. The combined figure is always labelled an estimate,
+with its rate and date shown. A currency whose rate could not be fetched sits on
+its own line rather than being folded in.
+
+**Splitting is wanted, and it is Phase 3.** Not needed for a partner, genuinely
+wanted for a friend, in the style of a shared-expense app. It needs a Share per
+Traveller carrying its own settled or outstanding state, which is a settlement
+model rather than a field, and it has no bearing on whether the timeline works.
+
 ### Done means
 
 One real trip of the author's, added entirely by upload and scan, where every
@@ -185,6 +213,8 @@ Storyboard frames: A3, C4, E2, E4, G1, G2, H1, H2, H3, D3, D5.
 - Document vault with expiry rules: passport, visa, date of birth, phone
   (deferred from Phase 0 deliberately, see Travellers above)
 - Post-trip receipts, expenses and export
+- Splitting a Booking between Travellers, shared-expense style: a Share per
+  Traveller with settled or outstanding state
 
 Retention features. None of them work before the timeline is reliable.
 
@@ -235,6 +265,14 @@ These change what gets built, so they are worth answering before Phase 1.
 4. **One region first?** Vendor templates and IDP-style derived requirements are
    regional work. India plus Japan plus Europe is a different template set from
    US domestic.
-5. ~~Is rail a first-class category?~~ **Answered:** transport splits on who
+5. **Which historical exchange-rate source?** Needed for the combined trip
+   total, per [ADR-0004](adr/0004-freeze-the-exchange-rate.md). "Google" is not
+   callable: there is no public Google FX API, and scraping it is neither
+   permitted nor stable. The ECB set through Frankfurter is free and dated but
+   euro-based and limited to major currencies, so it would not have covered a
+   Colombian peso charge. A commercial feed covers more and costs money. Not
+   urgent: all four sample Bookings are in dollars, so this can wait until one
+   arrives in a second currency.
+6. ~~Is rail a first-class category?~~ **Answered:** transport splits on who
    drives. Car if you drive it, Transit if you are carried, which covers rail,
    ferry, bus and booked airport transfers. See `CONTEXT.md`.
