@@ -1,7 +1,9 @@
 package app.linger.core
 
 import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Duration
 
 /**
@@ -46,6 +48,16 @@ data class Segment(
     val serviceNumber: String? = null,
 ) {
     val duration: Duration get() = endsAt - startsAt
+
+    /**
+     * The calendar date this Segment starts on, where it starts.
+     *
+     * A date rather than an instant, per ADR-0003: the same service on the same
+     * calendar day is one service even when a delay pushes the actual departure
+     * past midnight. Read in the start Place's own zone, because a flight
+     * leaving Newark at 23:59 left on the 23rd to everyone who was there.
+     */
+    val startLocalDate: LocalDate get() = startsAt.toLocalDateTime(from.zone).date
 
     /**
      * Whether the end has to be attended somewhere other than where it started.
