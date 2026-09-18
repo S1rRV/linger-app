@@ -7,9 +7,15 @@ mailbox access, is never on the critical path.
 
 Android only, per [ADR-0002](adr/0002-android-first.md).
 
-Three booking kinds: **flights, stays, car**. Not seven. They are enough to
-exercise everything risky (time zones, a multi-Segment booking, a deadline
-reminder) and the remaining kinds are the same shape underneath.
+Two booking kinds: **flights and cars**. Not seven, and no accommodation. The
+sample set contains no accommodation booking, so a stay is a kind we could build
+but could not test. Flights and cars between them still exercise everything
+risky: time zones, a multi-Segment booking, and a deadline reminder.
+
+**Bookings are shown as supplied.** Build one renders the dates, times and
+places exactly as the vendor stated them. It does not second-guess them, adjust
+them, or tell the traveller that a booking looks wrong. Detecting that one
+booking contradicts another is real work and it is not in build one.
 
 - Trip, Booking, Segment, TimelineEvent, Reminder tables
   (see [ADR-0001](adr/0001-bookings-split-into-segments.md))
@@ -44,7 +50,7 @@ Settled against the real confirmations in `docs/samples/`.
 | --- | --- |
 | Scheduled times from the confirmation | Live delay and gate tracking, which needs a paid feed |
 | When check-in opens, and a link to the airline | Checking in on the traveller's behalf, which airlines do not permit |
-| Self-connection warnings | Boarding passes, untestable until the pass exists |
+| (self-connection warnings: see open question 5) | Boarding passes, untestable until the pass exists |
 | A bundled airport list: code, city, timezone | |
 
 The airport list is a hard dependency, not a nicety. Every time in both flight
@@ -71,7 +77,9 @@ Storyboard frames: C1, C3, D1, D2, D4, E1, F1, G1, J1, J2.
 - 15 vendor templates: 6 airlines, 5 hotel groups, Airbnb, 3 OTAs
 - Schema-constrained model fallback with per-field confidence
 - Review queue and the confirm screen
-- Stays end to end, including wifi and door codes
+- Stays end to end, including wifi and door codes (dropped from Phase 0 for lack
+  of a sample to test against)
+- Cross-booking conflict detection, deferred from Phase 0's show-as-supplied rule
 - Pass storage from `.pkpass` and PDF barcodes
 - Offline trip pack
 
@@ -142,9 +150,18 @@ These change what gets built, so they are worth answering before Phase 1.
    earlier and needs no review, but mailbox connect is what finds past trips and
    catches changes without a forward rule. Still open, and now a Phase 1
    question rather than a Phase 0 one, since Phase 0 intake is upload and scan.
-3. **One region first?** Vendor templates and IDP-style derived requirements are
+3. **Do self-connection warnings survive "show as supplied"?** Round two of the
+   flights grilling put them in build one: when one flight lands and another
+   leaves the same airport within six hours on a separate booking, say that a
+   delay on the first is not covered by the second. A later instruction says
+   bookings are shown as supplied, with no conflict detection. These pull in
+   opposite directions, and the warning has not been removed pending an answer.
+   The distinction available, if wanted: a self-connection warning states a fact
+   about two bookings, whereas conflict detection asserts that one of them is
+   wrong.
+4. **One region first?** Vendor templates and IDP-style derived requirements are
    regional work. India plus Japan plus Europe is a different template set from
    US domestic.
-4. ~~Is rail a first-class category?~~ **Answered:** transport splits on who
+5. ~~Is rail a first-class category?~~ **Answered:** transport splits on who
    drives. Car if you drive it, Transit if you are carried, which covers rail,
    ferry, bus and booked airport transfers. See `CONTEXT.md`.
