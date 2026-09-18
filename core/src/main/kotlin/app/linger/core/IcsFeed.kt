@@ -87,7 +87,7 @@ object IcsFeed {
             .flatMap { IcsTime.definition(it, from, to) }
     }
 
-    private fun vevent(booking: Booking, event: TimelineEvent, generatedAt: Instant): List<String> = listOf(
+    private fun vevent(booking: Booking, event: TimelineEvent, generatedAt: Instant): List<String> = listOfNotNull(
         "BEGIN:VEVENT",
         "UID:${uid(booking, event)}",
         "DTSTAMP:${IcsTime.utcStamp(generatedAt)}",
@@ -95,8 +95,22 @@ object IcsFeed {
         "DTEND;TZID=${event.endZone.id}:${IcsTime.local(event.finishesAt, event.endZone)}",
         "SUMMARY:${escape(summary(event))}",
         "LOCATION:${escape(event.place.name)}",
+        description(booking)?.let { "DESCRIPTION:${escape(it)}" },
         "END:VEVENT",
     )
+
+    /**
+     * The numbers the traveller would be asked for, reachable from a watch.
+     *
+     * Every Reference, not one: ADR-0003 keeps a set because the desk asks for
+     * the operator's number and the agent asks for their own. Absent entirely
+     * when there are none, rather than empty, which reads in a calendar as
+     * though something was lost.
+     */
+    private fun description(booking: Booking): String? = booking.references
+        .sortedWith(compareBy({ it.issuer }, { it.code }))
+        .joinToString(" . ") { "${it.issuer} ${it.code}" }
+        .ifEmpty { null }
 
     /**
      * When the event finishes, once a moment has been given something to draw.

@@ -175,6 +175,47 @@ class IcsFeedTest {
         assertTrue(after.contains("DTSTART;TZID=America/New_York:20261223T213000"), after)
     }
 
+    @Test
+    fun `the description carries the numbers you would be asked for`() {
+        // What is reachable from a calendar notification on a watch, standing
+        // at a counter. Both numbers, because ADR-0003 keeps a set of them and
+        // the desk asks for one while the agent asks for the other.
+        val twoSellers = Booking(
+            references = setOf(
+                Reference(issuer = "Expedia", code = "73545609581279"),
+                Reference(issuer = "Arajet", code = "AFGZ2M"),
+            ),
+            segments = listOf(
+                leg("EWR", LocalDateTime(2026, 12, 23, 23, 59), "SDQ", LocalDateTime(2026, 12, 24, 5, 25), "DM 621"),
+            ),
+        )
+        val ics = IcsFeed.forTrip(
+            Trips.group(listOf(twoSellers), home = newYork).single(),
+            generatedAt = generatedAt,
+        )
+
+        val unfolded = ics.replace("\r\n ", "")
+        assertTrue(unfolded.contains("DESCRIPTION:Arajet AFGZ2M"), unfolded)
+        assertTrue(unfolded.contains("Expedia 73545609581279"), unfolded)
+    }
+
+    @Test
+    fun `a booking with no numbers has no description to give`() {
+        // Rather than an empty DESCRIPTION, which reads in a calendar as though
+        // something was lost.
+        val anonymous = Booking(
+            segments = listOf(
+                leg("EWR", LocalDateTime(2026, 12, 23, 23, 59), "SDQ", LocalDateTime(2026, 12, 24, 5, 25), "DM 621"),
+            ),
+        )
+        val ics = IcsFeed.forTrip(
+            Trips.group(listOf(anonymous), home = newYork).single(),
+            generatedAt = generatedAt,
+        )
+
+        assertTrue(!ics.contains("DESCRIPTION:"), ics)
+    }
+
     private fun uids(ics: String): Set<String> =
         Regex("UID:([^\r\n]+)").findAll(ics).map { it.groupValues[1] }.toSet()
 }
