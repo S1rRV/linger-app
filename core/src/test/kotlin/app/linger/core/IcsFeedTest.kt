@@ -1,5 +1,6 @@
 package app.linger.core
 
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -13,6 +14,10 @@ import kotlin.test.assertTrue
  * one-off download are delivery, and delivery is not domain.
  */
 class IcsFeedTest {
+
+    // Passed in rather than read from a clock, so the same Trip always
+    // renders the same bytes and the domain keeps its hands off the platform.
+    private val generatedAt = Instant.parse("2026-12-01T09:00:00Z")
 
     private val newYork = Home(assertNotNull(Airports.find("EWR")))
 
@@ -59,7 +64,7 @@ class IcsFeedTest {
         // The rental draws two because collection and return are two things to
         // turn up for. This is the timeline's answer, not a second opinion: the
         // export renders what the timeline already decided.
-        val feed = IcsFeed.forTrip(trip())
+        val feed = IcsFeed.forTrip(trip(), generatedAt = generatedAt)
 
         assertEquals(4, feed.split("BEGIN:VEVENT").size - 1)
         assertEquals(4, feed.split("END:VEVENT").size - 1)
@@ -67,7 +72,7 @@ class IcsFeedTest {
 
     @Test
     fun `the file is a calendar a parser will accept`() {
-        val feed = IcsFeed.forTrip(trip())
+        val feed = IcsFeed.forTrip(trip(), generatedAt = generatedAt)
 
         assertTrue(feed.startsWith("BEGIN:VCALENDAR\r\n"))
         assertTrue(feed.trimEnd('\r', '\n').endsWith("END:VCALENDAR"))
@@ -82,7 +87,7 @@ class IcsFeedTest {
     fun `every line ends with a carriage return and a newline`() {
         // RFC 5545 is explicit about CRLF, and a bare newline is the single
         // most common reason a hand-built feed fails to import at all.
-        val feed = IcsFeed.forTrip(trip())
+        val feed = IcsFeed.forTrip(trip(), generatedAt = generatedAt)
 
         val bareNewlines = Regex("(?<!\r)\n").findAll(feed).count()
         assertEquals(0, bareNewlines)
