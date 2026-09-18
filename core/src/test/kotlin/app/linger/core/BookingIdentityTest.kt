@@ -222,4 +222,74 @@ class BookingIdentityTest {
 
         assertTrue(Bookings.sameBooking(withNumber, withoutNumber))
     }
+
+    @Test
+    fun `an operator emailing only the outbound half still matches the whole`() {
+        // Airlines routinely confirm one direction at a time while the seller
+        // holds the whole purchase. Comparing whole journeys made these two
+        // Bookings, so the traveller saw the outbound twice and got every
+        // reminder for it twice.
+        //
+        // One matching Segment is enough. The same person cannot be on the same
+        // flight, on the same day, under two genuinely separate bookings.
+        val wholeTrip = Booking(
+            references = setOf(Reference(issuer = "Expedia", code = "73545609581279")),
+            travellers = setOf(varun),
+            segments = outbound() + listOf(
+                leg("MDE", LocalDateTime(2027, 1, 3, 13, 19), "PUJ", LocalDateTime(2027, 1, 3, 17, 9), "DM 322"),
+                leg("PUJ", LocalDateTime(2027, 1, 3, 20, 10), "EWR", LocalDateTime(2027, 1, 3, 23, 30), "DM 622"),
+            ),
+        )
+        val outboundOnly = Booking(
+            references = setOf(Reference(issuer = "Arajet", code = "AFGZ2M")),
+            travellers = setOf(varun),
+            segments = outbound(),
+        )
+
+        assertTrue(Bookings.sameBooking(wholeTrip, outboundOnly))
+    }
+
+    @Test
+    fun `sharing one leg is enough even when the rest of the trip differs`() {
+        // The case that makes the rule worth having and also the one that could
+        // go wrong. Two records that agree about one flight on one day for one
+        // person are describing that flight, whatever else either of them says.
+        val viaPuntaCana = Booking(
+            references = setOf(Reference(issuer = "Expedia", code = "73545609581279")),
+            travellers = setOf(varun),
+            segments = listOf(
+                leg("EWR", LocalDateTime(2026, 12, 23, 23, 59), "SDQ", LocalDateTime(2026, 12, 24, 5, 25), "DM 621"),
+                leg("SDQ", LocalDateTime(2026, 12, 24, 7, 50), "PUJ", LocalDateTime(2026, 12, 24, 8, 40), "DM 900"),
+            ),
+        )
+
+        assertTrue(Bookings.sameBooking(viaPuntaCana, Booking(
+            references = setOf(Reference(issuer = "Arajet", code = "AFGZ2M")),
+            travellers = setOf(varun),
+            segments = outbound(),
+        )))
+    }
+
+    @Test
+    fun `different people sharing a leg are still different bookings`() {
+        // The guard that has to survive the rule loosening. Any-Segment matching
+        // widens what counts as a match, so the traveller check is now carrying
+        // more weight than it was.
+        val arunima = Traveller(legalName = "Arunima", commonName = "Arunima")
+
+        assertFalse(
+            Bookings.sameBooking(
+                Booking(
+                    references = setOf(Reference(issuer = "Expedia", code = "73545609581279")),
+                    travellers = setOf(varun),
+                    segments = outbound(),
+                ),
+                Booking(
+                    references = setOf(Reference(issuer = "Expedia", code = "88812390045511")),
+                    travellers = setOf(arunima),
+                    segments = outbound(),
+                ),
+            ),
+        )
+    }
 }
