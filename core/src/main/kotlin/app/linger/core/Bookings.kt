@@ -15,6 +15,28 @@ object Bookings {
         shareAReference(a, b) || shareAJourney(a, b)
 
     /**
+     * Folds a later record into the one already held.
+     *
+     * ADR-0003's first-record-wins rule. [later] fills what [first] is missing
+     * and overwrites nothing, because an amendment is usually partial: Sixt's
+     * "your booking has moved" states the new date and may say nothing about
+     * the vehicle, the price or the insurance. Without this a thinner record
+     * would hollow out a complete one.
+     *
+     * References are the exception, and they are not really one: gaining a
+     * second number is filling a gap, not overwriting the first. The traveller
+     * wants both, because the desk asks for one and the agent for the other.
+     *
+     * Pure. Nothing here writes a version, because there is no store yet to
+     * hold the chain that DATA-MODEL.md invariant 4 describes.
+     */
+    fun merge(first: Booking, later: Booking): Booking = first.copy(
+        references = first.references + later.references,
+        travellers = first.travellers.ifEmpty { later.travellers },
+        segments = first.segments.ifEmpty { later.segments },
+    )
+
+    /**
      * Whether the two records were issued the same number by the same issuer.
      *
      * Survives everything else changing. Sixt keeps reservation 9739400602
