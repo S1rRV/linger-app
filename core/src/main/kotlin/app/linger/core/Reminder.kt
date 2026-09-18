@@ -32,4 +32,12 @@ enum class ReminderRule {
      * up. It is fuel, a detour to the branch, and a queue.
      */
     RETURN,
+
+    /**
+     * The morning after the car is back, when the vendor hedged the price.
+     *
+     * Anchored to a time of day rather than an offset, so that it arrives with
+     * breakfast rather than at whatever hour the return happened to be.
+     */
+    CONFIRM_FINAL_COST,
 }

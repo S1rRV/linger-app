@@ -1,6 +1,12 @@
 package app.linger.core
 
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.plus
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Duration.Companion.hours
 
 /**
@@ -13,6 +19,7 @@ import kotlin.time.Duration.Companion.hours
  */
 object Reminders {
 
+    private val MORNING = LocalTime(hour = 10, minute = 0)
     private val BEFORE_COLLECTING = 1.hours
     private val BEFORE_GIVING_BACK = 3.hours
 
@@ -20,9 +27,10 @@ object Reminders {
         booking.segments
             .filter { it.endMustBeAttended }
             .flatMap { segment ->
-                listOf(
+                listOfNotNull(
                     Reminder(ReminderRule.PICKUP, segment.startsAt - BEFORE_COLLECTING),
                     Reminder(ReminderRule.RETURN, segment.endsAt - BEFORE_GIVING_BACK),
+                    confirmFinalCost(booking, segment),
                 )
             }
             // Never in the past, and silently. Forwarding an old confirmation
@@ -31,4 +39,24 @@ object Reminders {
             // notifications are noise. The fact stays on the Booking, so a
             // screen can still say what happened; only the buzz is dropped.
             .filter { it.firesAt > now }
+
+    /**
+     * Asks, the morning after, whether a hedged price moved.
+     *
+     * Only when the vendor hedged it. Sixt wrote "Estimated rental cost" and
+     * Alamo wrote "Total Cost", and second-guessing the vendor that committed
+     * would train the traveller to ignore the one that did not.
+     *
+     * The hour is read in the Place the car went back to, not on the phone.
+     * This is the first rule anchored to a time of day rather than an offset,
+     * so it is the first that would be wrong in a different country.
+     */
+    private fun confirmFinalCost(booking: Booking, segment: Segment): Reminder? {
+        if (booking.money?.isAnEstimate != true) return null
+        val dayAfter = segment.endsAt.toLocalDateTime(segment.to.zone).date.plus(1, DateTimeUnit.DAY)
+        return Reminder(
+            rule = ReminderRule.CONFIRM_FINAL_COST,
+            firesAt = LocalDateTime(dayAfter, MORNING).toInstant(segment.to.zone),
+        )
+    }
 }
