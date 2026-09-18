@@ -166,4 +166,60 @@ class BookingIdentityTest {
 
         assertTrue(Bookings.sameBooking(fromExpedia, fromArajet))
     }
+
+    @Test
+    fun `two different flights out of one airport on one day are two bookings`() {
+        // The key is operator, start place and start local date, which on its
+        // own says these are the same journey. They are not: same airline, same
+        // airport, same morning, different flights.
+        //
+        // This is what ADR-0003 keeps the service number for. It is a
+        // tiebreaker rather than part of the key, because half of phase 0 has
+        // none, but where both records state one it settles the question.
+        val toSantoDomingo = Booking(
+            references = setOf(Reference(issuer = "Expedia", code = "73545609581279")),
+            travellers = setOf(varun),
+            segments = listOf(
+                leg("EWR", LocalDateTime(2026, 12, 23, 23, 59), "SDQ", LocalDateTime(2026, 12, 24, 5, 25), "DM 621"),
+            ),
+        )
+        val toPuntaCana = Booking(
+            references = setOf(Reference(issuer = "Expedia", code = "55544433322211")),
+            travellers = setOf(varun),
+            segments = listOf(
+                leg("EWR", LocalDateTime(2026, 12, 23, 8, 15), "PUJ", LocalDateTime(2026, 12, 23, 12, 40), "DM 880"),
+            ),
+        )
+
+        assertFalse(Bookings.sameBooking(toSantoDomingo, toPuntaCana))
+    }
+
+    @Test
+    fun `a missing service number does not break the match`() {
+        // The tiebreaker only speaks when both records state one. Sixt and
+        // Alamo never do, and a seller that omits the flight number should not
+        // stop a match it would otherwise make.
+        val withNumber = Booking(
+            references = setOf(Reference(issuer = "Expedia", code = "73545609581279")),
+            travellers = setOf(varun),
+            segments = listOf(
+                leg("EWR", LocalDateTime(2026, 12, 23, 23, 59), "SDQ", LocalDateTime(2026, 12, 24, 5, 25), "DM 621"),
+            ),
+        )
+        val withoutNumber = Booking(
+            references = setOf(Reference(issuer = "Arajet", code = "AFGZ2M")),
+            travellers = setOf(varun),
+            segments = listOf(
+                Segment.between(
+                    from = assertNotNull(Airports.find("EWR")),
+                    departingAt = LocalDateTime(2026, 12, 23, 23, 59),
+                    to = assertNotNull(Airports.find("SDQ")),
+                    arrivingAt = LocalDateTime(2026, 12, 24, 5, 25),
+                    operator = "Arajet",
+                ),
+            ),
+        )
+
+        assertTrue(Bookings.sameBooking(withNumber, withoutNumber))
+    }
 }

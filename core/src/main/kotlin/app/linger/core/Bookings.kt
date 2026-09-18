@@ -35,11 +35,28 @@ object Bookings {
     private fun shareAJourney(a: Booking, b: Booking): Boolean {
         if (a.segments.isEmpty() || b.segments.isEmpty()) return false
         if (a.travellers != b.travellers || a.travellers.isEmpty()) return false
-        return a.journey() == b.journey()
+        if (a.segments.size != b.segments.size) return false
+        return a.inOrder().zip(b.inOrder()).all { (mine, theirs) -> mine.isSameJourneyAs(theirs) }
     }
 
-    private fun Booking.journey(): List<JourneyKey> =
-        segments.sortedBy { it.startsAt }.map { it.journeyKey() }
+    private fun Booking.inOrder(): List<Segment> = segments.sortedBy { it.startsAt }
+
+    private fun Segment.isSameJourneyAs(other: Segment): Boolean =
+        journeyKey() == other.journeyKey() && serviceNumberAgreesWith(other)
+
+    /**
+     * Whether the two Segments' service numbers rule out a match.
+     *
+     * Only speaks when both records state one. A seller that omits the flight
+     * number should not block a match it would otherwise make, and neither Sixt
+     * nor Alamo states anything of the kind, which is why ADR-0003 has this as
+     * a tiebreaker rather than part of the key.
+     */
+    private fun Segment.serviceNumberAgreesWith(other: Segment): Boolean {
+        val mine = serviceNumber?.trim()?.uppercase() ?: return true
+        val theirs = other.serviceNumber?.trim()?.uppercase() ?: return true
+        return mine == theirs
+    }
 
     private fun Segment.journeyKey() = JourneyKey(
         operator = operator,
