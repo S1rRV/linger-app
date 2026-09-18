@@ -51,6 +51,12 @@ pushes. Re-anchoring is silent.
 repeats: the next one reflects traffic 15 minutes later, which may be a different
 number.
 
+**Never in the past.** A deadline that has already passed produces no reminder,
+silently. The JetSMART confirmation in `docs/samples/` says "Free cancellation
+expires 24 hours after confirmation", so importing it a week later would
+otherwise schedule something for last Tuesday. The fact stays on the Booking so
+a screen can say "free cancellation expired"; only the notification is dropped.
+
 **Conditions are re-evaluated.** A reminder whose condition stops holding is
 voided, not fired. Select a seat and the "seat not selected" reminder disappears
 without a notification.

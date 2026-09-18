@@ -81,6 +81,29 @@ platform or pickup point. Split from Car on who drives, not on what the vehicle
 is.
 _Avoid_: Rail, ground transport, transfer
 
+**Seller**:
+Who the Booking was bought from and who holds the money. Expedia, Booking.com,
+or the operator itself when booked direct.
+_Avoid_: Agent, OTA, reseller, provider
+
+**Operator**:
+Who actually performs the service on the day: the airline flying the aircraft,
+the company handing over the car keys. Who the traveller deals with at the
+airport or the counter, and who check-in happens with.
+_Avoid_: Carrier, supplier, airline
+
+**Layover**:
+The wait between two consecutive Segments of the SAME Booking. Protected: if
+the first runs late, the operator carries responsibility for the second.
+_Avoid_: Stopover, connection
+
+**Self-connection**:
+A wait between two Segments of DIFFERENT Bookings at the same place. Looks like
+a Layover to the traveller and is not one: a delay on the first leaves the
+second operator owing nothing. Always surfaced, never silently treated as a
+Layover.
+_Avoid_: Connection, transfer, self-transfer
+
 ## Terms deliberately not used
 
 **Reservation** is the ordinary English word for any Booking, so it cannot also
@@ -88,8 +111,10 @@ name one kind of Booking. Use Booking in the model. "Reservations" survives only
 as a label on one UI section.
 
 **Ticket** is a code printed on a Booking, not a thing in its own right. The
-scannable artefact is a PassArtifact; the number beside it is a field on the
-Booking.
+scannable artefact is a PassArtifact; the number beside it belongs to one
+Traveller on one Booking, and is optional: the Arajet confirmation in
+`docs/samples/` carries no ticket number at all, only a confirmation code. The
+confirmation code is the required identifier; a ticket number is not.
 
 **Event** on its own is ambiguous between a Segment and a TimelineEvent. Always
 say which.
