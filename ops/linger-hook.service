@@ -1,0 +1,26 @@
+[Unit]
+Description=Linger deploy webhook (GitHub, through a Tailscale funnel)
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=linger
+Group=linger
+WorkingDirectory=/opt/linger-app
+# Holds LINGER_HOOK_SECRET. Root owned and 0600, so the service can read it
+# and nothing else on the box can.
+EnvironmentFile=/etc/linger/hook.env
+ExecStart=/usr/bin/env node /opt/linger-app/ops/hook.js
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/linger-app
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

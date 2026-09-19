@@ -1,0 +1,26 @@
+[Unit]
+Description=Linger dev server (Expo, over the tailnet)
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=linger
+Group=linger
+WorkingDirectory=/opt/linger-app
+ExecStart=/opt/linger-app/run.sh --tailscale
+Restart=always
+RestartSec=5
+# Metro watches the whole tree and the default inotify budget is not enough.
+LimitNOFILE=16384
+# Nothing here needs to write outside its own checkout.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/linger-app
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
