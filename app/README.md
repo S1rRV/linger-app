@@ -17,14 +17,35 @@ It works out where it is running and does the right thing.
 The one-time setup:
 
 ```
-pkg update && pkg install nodejs-lts git
+pkg update -y && pkg upgrade -y
+pkg install -y nodejs-lts git
+termux-setup-storage
+mkdir -p ~/workspace && cd ~/workspace
 git clone https://github.com/S1rRV/linger-app
 cd linger-app
 ./run.sh
 ```
 
-Take `nodejs-lts` rather than `nodejs`. The plain package tracks the newest
-release, currently Node 26, which Metro does not always support yet.
+Line by line, because three of these are easy to skip and annoying to discover
+later:
+
+| | |
+| --- | --- |
+| `nodejs-lts`, not `nodejs` | The plain package tracks the newest release, currently Node 26, which Metro does not always support |
+| `termux-setup-storage` | Pops a permission dialog. Tap Allow. This is what puts `~/storage/downloads` within reach, which is where a forwarded confirmation lands |
+| `~/workspace` | Termux's home is also where its own dotfiles live. A clone straight into it works and gets messy fast |
+
+Afterwards, every run is just:
+
+```
+cd ~/workspace/linger-app && ./run.sh
+```
+
+If `git clone` asks for a password, GitHub stopped accepting account passwords
+for git: generate a personal access token and paste that instead.
+
+The script takes a wake lock in Termux so the server survives the screen going
+off, and releases it when you quit.
 
 There is no QR code in this mode and no wifi to match, because the server and
 Expo Go are the same device. The script serves on loopback, prints

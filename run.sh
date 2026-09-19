@@ -21,6 +21,31 @@ on_phone() { [ -n "${TERMUX_VERSION:-}" ] || [ -d /data/data/com.termux ]; }
 printf '\n%sLinger%s\n' "$bold" "$off"
 on_phone && printf '%sRunning on the phone itself%s\n\n' "$dim" "$off" || printf '%s------%s\n\n' "$dim" "$off"
 
+# ------------------------------------------------------------- 0. the workspace
+#
+# Termux only, and both of these are one-time. Skipping them is not fatal today
+# and costs you later: the server dies when the screen sleeps, and the app
+# cannot reach a confirmation sitting in Downloads.
+
+if on_phone; then
+  # Keeps the CPU awake so Metro survives the screen going off. Released on the
+  # way out, so it does not sit there draining the battery after you quit.
+  if command -v termux-wake-lock >/dev/null; then
+    termux-wake-lock
+    trap 'command -v termux-wake-unlock >/dev/null && termux-wake-unlock' EXIT INT TERM
+    ok "Wake lock"
+  else
+    warn "Wake lock" "unavailable, the server may sleep"
+  fi
+
+  if [ -d "$HOME/storage" ]; then
+    ok "Shared storage"
+  elif command -v termux-setup-storage >/dev/null; then
+    warn "Shared storage" "not granted yet"
+    printf '     %sRun termux-setup-storage and tap Allow. Needed later, when the\n     app reads confirmations out of Downloads.%s\n' "$dim" "$off"
+  fi
+fi
+
 # ---------------------------------------------------------------- 1. the tools
 
 if ! command -v node >/dev/null; then
