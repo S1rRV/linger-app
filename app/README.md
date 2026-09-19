@@ -60,11 +60,36 @@ rerun on a machine with Java and committed.
 Keep Termux in the foreground or give it a wake lock. Swiping it away stops the
 server.
 
-### From a computer
+### From a computer, over Tailscale
 
-Scan the QR code with Expo Go on a phone on the same wifi. If the phone and the
-computer cannot see each other, `./run.sh --tunnel` works from anywhere and is
-slower.
+```
+./run.sh --tailscale
+```
+
+The best of the three if you have a tailnet. It works from any network, the
+phone does not need to be on the same wifi, and nothing routes through a third
+party the way `--tunnel` does. Tailscale has to be on at both ends.
+
+Expo advertises whichever address it guesses, which on a machine with several
+interfaces is rarely the tailnet one, so the script sets
+`REACT_NATIVE_PACKAGER_HOSTNAME` to the address from `tailscale ip -4`. Metro
+still listens on every interface, so the tailnet address reaches it. Verified
+against the dev server's own manifest: `hostUri` comes back as the tailnet
+address.
+
+This is also the setup worth preferring over Termux once you are iterating.
+Metro on a phone is slow and memory hungry; over the tailnet the bundling
+happens on the computer and the phone only renders.
+
+### From a computer, same wifi
+
+```
+./run.sh
+```
+
+Scan the QR code with Expo Go. If the two cannot see each other and you have no
+tailnet, `./run.sh --tunnel` works from anywhere, and is slower because it
+routes through ngrok.
 
 ## What this is, and what it is not
 

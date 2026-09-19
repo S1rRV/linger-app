@@ -136,6 +136,40 @@ NOTE
   cd app && exec npx expo start --localhost
 fi
 
+# ------------------------------------------------------- 5. over the tailnet
+#
+# Expo advertises whichever address it guesses, which on a machine with several
+# interfaces is rarely the tailnet one. REACT_NATIVE_PACKAGER_HOSTNAME overrides
+# what goes into the URL; Metro still listens on every interface, so the
+# tailnet address reaches it.
+
+tailnet_ip() { command -v tailscale >/dev/null && tailscale ip -4 2>/dev/null | head -1; }
+
+if [ "${1:-}" = "--tailscale" ]; then
+  command -v tailscale >/dev/null || die "Tailscale" \
+"The tailscale command is not on this machine. Install it from
+https://tailscale.com/download, or use ./run.sh on the same wifi instead."
+
+  ts_ip=$(tailnet_ip)
+  [ -n "$ts_ip" ] || die "Tailscale" \
+"Tailscale is installed but not connected. Run 'tailscale up' and try again."
+
+  ok "Tailscale $ts_ip"
+  export REACT_NATIVE_PACKAGER_HOSTNAME="$ts_ip"
+  cat <<NOTE
+
+${bold}Over your tailnet${off}
+  Works from any network, and unlike a tunnel nothing leaves your machines.
+
+  1. Make sure ${bold}Tailscale is on${off} on the phone as well.
+  2. Open Expo Go and scan the QR code below, or enter:
+
+      ${bold}exp://$ts_ip:8081${off}
+
+NOTE
+  cd app && exec npx expo start --host lan
+fi
+
 cat <<NOTE
 
 ${bold}On your phone${off}
@@ -143,13 +177,16 @@ ${bold}On your phone${off}
   2. Put the phone on the ${bold}same wifi${off} as this computer.
   3. Open Expo Go and scan the QR code below.
 
-  ${dim}Different networks, or wifi that blocks devices seeing each other?
-  Stop this and run:  ./run.sh --tunnel${off}
-
 NOTE
 
+if [ -n "$(tailnet_ip)" ]; then
+  printf '  %sTailscale is up on this machine. %s./run.sh --tailscale%s%s reaches the\n  phone from any network, and is faster than the tunnel below.%s\n\n' \
+    "$dim" "$bold" "$off" "$dim" "$off"
+fi
+printf '  %sNo shared network at all?  ./run.sh --tunnel%s\n\n' "$dim" "$off"
+
 if [ "${1:-}" = "--tunnel" ]; then
-  printf '%sStarting with a tunnel. Slower, and it works from anywhere.%s\n\n' "$dim" "$off"
+  printf '%sStarting with a tunnel. Slower, and it routes through a third party.%s\n\n' "$dim" "$off"
   cd app && exec npx expo start --tunnel
 fi
 
