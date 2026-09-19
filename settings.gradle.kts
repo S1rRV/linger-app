@@ -14,6 +14,8 @@ dependencyResolutionManagement {
     }
 }
 
-// Only the pure-Kotlin domain module for now. The Android app module is added
-// when there is an SDK to build it against; see docs/adr/0002-android-first.md.
+// The pure-Kotlin domain, and a build-time tool that exports a Trip as JSON for
+// the Expo app to render. No Android module yet; see
+// docs/adr/0002-android-first.md and docs/research/expo-go-constraints.md.
 include(":core")
+include(":tools")

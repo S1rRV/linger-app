@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "Linger",
+    "slug": "linger",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "package": "app.linger"
+    }
+  }
+}
